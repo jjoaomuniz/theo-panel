@@ -1,0 +1,47 @@
+[
+  {
+    "id": "cron-1",
+    "name": "Sync MEMORY.md",
+    "schedule": "06h15",
+    "lastRun": "2025-01-01T06:15:00.000Z",
+    "lastRunStatus": "ok",
+    "nextRun": "2025-01-02T06:15:00.000Z",
+    "enabled": true
+  },
+  {
+    "id": "cron-2",
+    "name": "Relatório de Custos",
+    "schedule": "08h00",
+    "lastRun": "2025-01-01T08:00:00.000Z",
+    "lastRunStatus": "ok",
+    "nextRun": "2025-01-02T08:00:00.000Z",
+    "enabled": true
+  },
+  {
+    "id": "cron-3",
+    "name": "Backup Sessions",
+    "schedule": "02h00",
+    "lastRun": "2025-01-01T02:00:00.000Z",
+    "lastRunStatus": "ok",
+    "nextRun": "2025-01-02T02:00:00.000Z",
+    "enabled": true
+  },
+  {
+    "id": "cron-4",
+    "name": "Check API Health",
+    "schedule": "*/30min",
+    "lastRun": "2025-01-01T12:00:00.000Z",
+    "lastRunStatus": "ok",
+    "nextRun": "2025-01-01T12:30:00.000Z",
+    "enabled": true
+  },
+  {
+    "id": "cron-5",
+    "name": "Limpar Cache",
+    "schedule": "00h00",
+    "lastRun": "2025-01-01T00:00:00.000Z",
+    "lastRunStatus": "skipped",
+    "nextRun": "2025-01-02T00:00:00.000Z",
+    "enabled": false
+  }
+]

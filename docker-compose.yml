@@ -1,0 +1,28 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: theo-panel-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: theo-panel-backend
+    env_file: .env
+    volumes:
+      # Mount OpenClaw data (read-only)
+      - ${OPENCLAW_HOST_DIR:-/root/.openclaw}:/data/openclaw:ro
+      # Cron jobs config (read-write)
+      - ./cronjobs.json:/data/cronjobs.json
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
