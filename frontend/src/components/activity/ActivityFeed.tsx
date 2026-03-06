@@ -32,7 +32,7 @@ export default function ActivityFeed({ compact = false }: { compact?: boolean })
 
   // Listen for real-time activity via WebSocket
   useWebSocket({
-    onMessage: useCallback((event) => {
+    onMessage: useCallback((event: import('@/hooks/useWebSocket').WSEvent) => {
       if (event.type === 'activity:new' && event.data) {
         const newActivity = event.data as ActivityItem;
         setActivities(prev => [newActivity, ...prev.slice(0, 19)]);

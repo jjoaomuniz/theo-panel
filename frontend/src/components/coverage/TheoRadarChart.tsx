@@ -123,7 +123,8 @@ export default function TheoRadarChart() {
           <PolarGrid stroke="#1e1e2e" strokeWidth={1} />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={(props: { payload: { value: string }; x: number; y: number; cx: number; cy: number }) => <CustomAxisTick {...props} />}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            tick={(props: any) => <CustomAxisTick {...props} />}
           />
           <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 9 }} tickCount={5} stroke="#1e1e2e" />
           <Radar name="Potencial Teórico" dataKey="potential" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.12} strokeWidth={2} dot={{ r: 3, fill: '#06b6d4', strokeWidth: 0 }} animationDuration={800} animationEasing="ease-out" />
