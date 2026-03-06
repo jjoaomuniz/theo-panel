@@ -3,6 +3,7 @@ import Layout from '@/components/layout/Layout';
 import NeuralMap from '@/pages/NeuralMap';
 import Dashboard from '@/pages/Dashboard';
 import Agents from '@/pages/Agents';
+import Coverage from '@/pages/Coverage';
 import Costs from '@/pages/Costs';
 import CronJobs from '@/pages/CronJobs';
 import LLMs from '@/pages/LLMs';
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
       { index: true, element: <NeuralMap /> },
       { path: 'dashboard', element: <Dashboard /> },
       { path: 'agents', element: <Agents /> },
+      { path: 'coverage', element: <Coverage /> },
       { path: 'costs', element: <Costs /> },
       { path: 'cronjobs', element: <CronJobs /> },
       { path: 'llms', element: <LLMs /> },

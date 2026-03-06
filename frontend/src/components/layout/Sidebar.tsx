@@ -4,6 +4,7 @@ const navItems = [
   { to: '/', label: 'Neural Map', icon: '\u{1F9E0}' },
   { to: '/dashboard', label: 'Dashboard', icon: '\u{1F4CA}' },
   { to: '/agents', label: 'Agentes', icon: '\u{1F916}' },
+  { to: '/coverage', label: 'Cobertura', icon: '\u{1F3AF}' },
   { to: '/costs', label: 'Custos', icon: '\u{1F4B0}' },
   { to: '/cronjobs', label: 'Cron Jobs', icon: '\u{23F0}' },
   { to: '/llms', label: 'LLMs', icon: '\u{26A1}' },
