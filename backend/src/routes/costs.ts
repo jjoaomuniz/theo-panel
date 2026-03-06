@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import { getDailyCostsByAgent, getCredits } from '../services/openrouter.js';
+import { parseIntParam, errorResponse } from '../lib/validate.js';
 
 export const costsRouter = Router();
 
-costsRouter.get('/costs', async (_req, res) => {
+costsRouter.get('/costs', async (req, res) => {
   try {
+    const days = parseIntParam(req.query.days, 30, 1, 90);
+
     const [daily, credits] = await Promise.all([
-      getDailyCostsByAgent(30),
+      getDailyCostsByAgent(days),
       getCredits().catch(() => null),
     ]);
 
@@ -33,10 +36,6 @@ costsRouter.get('/costs', async (_req, res) => {
     });
   } catch (error) {
     console.error('[Costs] Error:', error);
-    res.status(500).json({
-      daily: [],
-      summary: { total: 0, average: 0, projection: 0 },
-      credits: null,
-    });
+    res.status(500).json(errorResponse('Failed to fetch cost data', 'COSTS_ERROR'));
   }
 });

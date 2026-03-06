@@ -31,13 +31,17 @@ healthRouter.get('/health', async (_req, res) => {
     openclawOk = false;
   }
 
+  const overall = openrouterOk && openclawOk ? 'ok' : openrouterOk || openclawOk ? 'degraded' : 'error';
+
   const status: HealthStatus = {
-    status: openrouterOk && openclawOk ? 'ok' : openrouterOk || openclawOk ? 'degraded' : 'error',
+    status: overall,
     uptime: getUptime(),
     openrouter: openrouterOk,
     openclaw: openclawOk,
     timestamp: new Date().toISOString(),
   };
 
-  res.json(status);
+  // Set appropriate HTTP status based on health
+  const httpStatus = overall === 'ok' ? 200 : overall === 'degraded' ? 200 : 503;
+  res.status(httpStatus).json(status);
 });

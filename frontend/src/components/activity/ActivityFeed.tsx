@@ -2,18 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAPI } from '@/hooks/useAPI';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { api } from '@/lib/api';
+import { timeAgo } from '@/lib/utils';
 import { mockActivities } from '@/data/mockData';
 import type { ActivityItem } from '@/types/agents';
-
-function timeAgo(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'agora';
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
-}
 
 const typeBorder: Record<string, string> = {
   info: 'border-l-accent-cyan',

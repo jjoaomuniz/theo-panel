@@ -1,21 +1,6 @@
 import type { Agent } from '@/types/agents';
 import StatusBadge from '@/components/shared/StatusBadge';
-
-function timeAgo(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'agora';
-  if (mins < 60) return `ha ${mins} min`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `ha ${hrs}h`;
-  return `ha ${Math.floor(hrs / 24)}d`;
-}
-
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
-}
+import { timeAgo, formatTokens } from '@/lib/utils';
 
 export default function AgentCard({ agent, expanded = false }: { agent: Agent; expanded?: boolean }) {
   return (
@@ -35,13 +20,13 @@ export default function AgentCard({ agent, expanded = false }: { agent: Agent; e
       {/* Active Task */}
       {agent.activeTask && (
         <div className="bg-accent-purple/5 border border-accent-purple/20 rounded-lg px-3 py-2 mb-3">
-          <p className="text-xs text-accent-purple font-mono truncate">{agent.activeTask}</p>
+          <p className="text-xs text-accent-purple font-mono truncate" title={agent.activeTask}>{agent.activeTask}</p>
         </div>
       )}
 
       {/* Last Action */}
       <div className="mb-3">
-        <p className="text-xs text-text-secondary truncate">"{agent.lastAction}"</p>
+        <p className="text-xs text-text-secondary truncate" title={agent.lastAction}>"{agent.lastAction}"</p>
         <p className="text-xs text-text-muted mt-0.5">{timeAgo(agent.lastActionTime)}</p>
       </div>
 
