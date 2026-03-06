@@ -3,6 +3,8 @@ import { api } from '@/lib/api';
 import { formatTokens, formatBRL } from '@/lib/utils';
 import { mockAgents, mockDailyCosts } from '@/data/mockData';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import AgentCard from '@/components/agents/AgentCard';
+import ActivityFeed from '@/components/activity/ActivityFeed';
 
 export default function Dashboard() {
   const { data: agents } = useAPI(api.agents, mockAgents, { pollInterval: 10_000 });
@@ -32,13 +34,33 @@ export default function Dashboard() {
       <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         {stats.map((stat) => (
           <div key={stat.label} className="bg-bg-card border border-border rounded-xl p-5 transition-all hover:border-border-hover">
             <p className="text-xs text-text-muted uppercase tracking-wider">{stat.label}</p>
             <p className={`text-2xl font-bold mt-2 font-mono ${stat.color}`}>{stat.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Agent Cards + Activity Feed */}
+      <div className="grid grid-cols-[1fr_320px] gap-4 mb-6">
+        {/* Agent Cards */}
+        <div className="grid grid-cols-3 gap-3">
+          {(agents ?? []).map(agent => (
+            <AgentCard key={agent.id} agent={agent} />
+          ))}
+        </div>
+
+        {/* Activity Feed */}
+        <div className="bg-bg-card border border-border rounded-xl p-4 flex flex-col max-h-[340px]">
+          <h3 className="text-xs text-text-muted uppercase tracking-wider font-mono mb-3 shrink-0">
+            Atividade Recente
+          </h3>
+          <div className="flex-1 overflow-hidden">
+            <ActivityFeed compact />
+          </div>
+        </div>
       </div>
 
       {/* Cost Chart */}

@@ -1,13 +1,10 @@
 import NeuralGraph from '@/components/neural/NeuralGraph';
-import AgentCard from '@/components/agents/AgentCard';
-import ActivityFeed from '@/components/activity/ActivityFeed';
 import { useAPI } from '@/hooks/useAPI';
 import { api } from '@/lib/api';
-import { mockAgents, mockNodes, mockLinks } from '@/data/mockData';
+import { mockNodes, mockLinks } from '@/data/mockData';
 import { CATEGORY_COLORS, CATEGORY_LABELS, type NodeCategory } from '@/types/neural';
 
 export default function NeuralMap() {
-  const { data: agents } = useAPI(api.agents, mockAgents, { pollInterval: 10_000 });
   const { data: neuralData } = useAPI(
     api.neural,
     { nodes: mockNodes, links: mockLinks },
@@ -24,7 +21,7 @@ export default function NeuralMap() {
         <NeuralGraph />
       </div>
 
-      {/* Overlay container — pointer-events none, children opt-in */}
+      {/* Overlay container */}
       <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4">
 
         {/* Top row: Title + Legend */}
@@ -43,28 +40,6 @@ export default function NeuralMap() {
                 <span className="text-xs text-text-secondary">{CATEGORY_LABELS[category]}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Bottom row: Agent Cards + Activity Feed */}
-        <div className="flex items-end gap-4">
-          {/* Agent Cards */}
-          <div className="pointer-events-auto flex gap-3 flex-1 max-w-[750px]">
-            {(agents ?? []).map(agent => (
-              <div key={agent.id} className="flex-1 min-w-0">
-                <AgentCard agent={agent} />
-              </div>
-            ))}
-          </div>
-
-          {/* Activity Feed */}
-          <div className="pointer-events-auto w-72 h-80 bg-bg-card/70 backdrop-blur-sm border border-border/50 rounded-xl p-3 flex flex-col">
-            <h3 className="text-xs text-text-muted uppercase tracking-wider font-mono mb-2 shrink-0">
-              Atividade Recente
-            </h3>
-            <div className="flex-1 overflow-hidden">
-              <ActivityFeed compact />
-            </div>
           </div>
         </div>
       </div>
