@@ -131,9 +131,10 @@ export const mockDailyCosts = Array.from({ length: 30 }, (_, i) => {
   date.setDate(date.getDate() - (29 - i));
   return {
     date: date.toISOString().split('T')[0],
+    theo: +(Math.random() * 1.2 + 0.3).toFixed(2),
     bruno: +(Math.random() * 2 + 0.5).toFixed(2),
     leo: +(Math.random() * 1.5 + 0.3).toFixed(2),
     marco: +(Math.random() * 1.8 + 0.4).toFixed(2),
     total: 0,
   };
-}).map(d => ({ ...d, total: +(d.bruno + d.leo + d.marco).toFixed(2) }));
+}).map(d => ({ ...d, total: +(d.theo + d.bruno + d.leo + d.marco).toFixed(2) }));

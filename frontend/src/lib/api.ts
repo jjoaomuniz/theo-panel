@@ -28,6 +28,7 @@ export interface NeuralData {
 
 export interface DailyCost {
   date: string;
+  theo: number;
   bruno: number;
   leo: number;
   marco: number;

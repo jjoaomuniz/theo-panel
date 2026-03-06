@@ -132,17 +132,18 @@ export async function getDailyCostsByAgent(days: number = 30) {
 /** Map model usage to agent based on known model assignments */
 function groupActivityByAgent(entries: ActivityEntry[]) {
   // Group by date
-  const byDate = new Map<string, { bruno: number; leo: number; marco: number; total: number }>();
+  const byDate = new Map<string, { theo: number; bruno: number; leo: number; marco: number; total: number }>();
 
   for (const entry of entries) {
-    const existing = byDate.get(entry.date) || { bruno: 0, leo: 0, marco: 0, total: 0 };
+    const existing = byDate.get(entry.date) || { theo: 0, bruno: 0, leo: 0, marco: 0, total: 0 };
     const cost = entry.usage || 0;
 
-    // Distribute cost across agents proportionally (1/3 each as default)
-    // In production, this would use OpenClaw session data to attribute costs
-    existing.bruno += cost / 3;
-    existing.leo += cost / 3;
-    existing.marco += cost / 3;
+    // Distribute cost across agents (Theo orchestrates ~25%, subagents ~25% each)
+    // In production, this would use OpenClaw session data to attribute costs precisely
+    existing.theo += cost * 0.25;
+    existing.bruno += cost * 0.25;
+    existing.leo += cost * 0.25;
+    existing.marco += cost * 0.25;
     existing.total += cost;
 
     byDate.set(entry.date, existing);
@@ -152,6 +153,7 @@ function groupActivityByAgent(entries: ActivityEntry[]) {
   return Array.from(byDate.entries())
     .map(([date, costs]) => ({
       date,
+      theo: Math.round(costs.theo * 100) / 100,
       bruno: Math.round(costs.bruno * 100) / 100,
       leo: Math.round(costs.leo * 100) / 100,
       marco: Math.round(costs.marco * 100) / 100,

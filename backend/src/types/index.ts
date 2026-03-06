@@ -66,6 +66,7 @@ export interface CronJob {
 // ─── Cost Types ─────────────────────────────────────────────
 export interface DailyCost {
   date: string;
+  theo: number;
   bruno: number;
   leo: number;
   marco: number;
