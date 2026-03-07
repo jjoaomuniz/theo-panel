@@ -33,20 +33,32 @@ export default function Sidebar() {
       {/* Subtle gradient accent on left edge */}
       <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-accent-purple/20 via-accent-cyan/10 to-transparent" />
 
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-white/[0.03]">
-        <div className="flex items-center gap-2.5">
-          <div className="relative shrink-0">
-            <div className="w-3 h-3 rounded-full bg-accent-purple" />
-            <div className="absolute inset-0 w-3 h-3 rounded-full bg-accent-purple animate-pulse-ring" />
-          </div>
-          {!collapsed && (
+      {/* Header: hamburger + logo */}
+      <div className="px-3 py-3 border-b border-white/[0.03] flex items-center gap-2.5">
+        <button
+          onClick={() => setCollapsed(prev => !prev)}
+          className="shrink-0 p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.04] transition-all"
+          aria-label={collapsed ? 'Expandir' : 'Recolher'}
+          title={collapsed ? 'Expandir' : 'Recolher'}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <div className="relative shrink-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-accent-purple" />
+              <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-accent-purple animate-pulse-ring" />
+            </div>
             <div>
               <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-gradient">THEO</h1>
               <p className="text-[9px] text-text-muted font-mono tracking-wider mt-0.5">NEURAL CONTROL</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -85,31 +97,9 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-white/[0.03]">
-        {/* System status */}
-        <div className={`flex items-center gap-2 text-[10px] text-text-muted ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-1.5 h-1.5 rounded-full bg-success animate-status-pulse shrink-0" />
-          {!collapsed && <span className="font-mono tracking-wide">Online</span>}
-        </div>
-
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setCollapsed(prev => !prev)}
-          className={`mt-2 w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] text-text-muted hover:text-text-secondary hover:bg-white/[0.02] transition-all ${
-            collapsed ? 'justify-center' : ''
-          }`}
-          aria-label={collapsed ? 'Expandir' : 'Recolher'}
-          title={collapsed ? 'Expandir' : 'Recolher'}
-        >
-          <svg
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            className={`shrink-0 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {!collapsed && <span className="font-mono">Recolher</span>}
-        </button>
+      <div className={`px-3 py-3 border-t border-white/[0.03] flex items-center gap-2 text-[10px] text-text-muted ${collapsed ? 'justify-center' : ''}`}>
+        <div className="w-1.5 h-1.5 rounded-full bg-success animate-status-pulse shrink-0" />
+        {!collapsed && <span className="font-mono tracking-wide">Online</span>}
       </div>
     </aside>
   );
