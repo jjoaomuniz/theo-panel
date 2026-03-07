@@ -11,36 +11,31 @@ export default function NeuralTooltip({ node, containerRect }: Props) {
 
   const color = CATEGORY_COLORS[node.category];
 
-  // Position tooltip to avoid going off screen
-  const tooltipWidth = 220;
-  const tooltipHeight = 100;
-  let left = node.x + 20;
-  let top = node.y - 20;
+  const tooltipWidth = 240;
+  const tooltipHeight = 120;
+  let left = node.x + 24;
+  let top = node.y - 24;
 
-  if (left + tooltipWidth > containerRect.width) {
-    left = node.x - tooltipWidth - 10;
-  }
-  if (top + tooltipHeight > containerRect.height) {
-    top = containerRect.height - tooltipHeight - 10;
-  }
-  if (top < 10) top = 10;
+  if (left + tooltipWidth > containerRect.width) left = node.x - tooltipWidth - 14;
+  if (top + tooltipHeight > containerRect.height) top = containerRect.height - tooltipHeight - 14;
+  if (top < 14) top = 14;
 
   return (
-    <div
-      className="absolute pointer-events-none z-50"
-      style={{ left, top }}
-    >
-      <div className="bg-bg-card/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-2xl min-w-[200px]">
+    <div className="absolute pointer-events-none z-50 animate-fade-in" style={{ left, top }}>
+      <div className="glass rounded-2xl p-4 shadow-2xl min-w-[220px]" style={{ borderColor: `${color}20` }}>
+        {/* Accent bar */}
+        <div className="absolute top-0 left-4 right-4 h-[2px] rounded-full" style={{ background: `linear-gradient(90deg, ${color}60, transparent)` }} />
+
         {/* Header */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-          <span className="text-sm font-semibold">{node.label}</span>
+        <div className="flex items-center gap-2.5 mb-2.5">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}40` }} />
+          <span className="text-sm font-semibold text-text-primary">{node.label}</span>
         </div>
 
         {/* Category badge */}
         <div
-          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono mb-2"
-          style={{ backgroundColor: `${color}15`, color }}
+          className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium tracking-wide uppercase mb-2.5"
+          style={{ backgroundColor: `${color}12`, color, border: `1px solid ${color}20` }}
         >
           {CATEGORY_LABELS[node.category]}
         </div>
@@ -49,12 +44,12 @@ export default function NeuralTooltip({ node, containerRect }: Props) {
         <p className="text-xs text-text-secondary leading-relaxed">{node.description}</p>
 
         {/* Meta */}
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-          <span className="text-xs text-text-muted font-mono">
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/5">
+          <span className="text-[10px] text-text-muted font-mono">
             {node.connections.length} conexoes
           </span>
           {node.learnedAt && (
-            <span className="text-xs text-text-muted font-mono">
+            <span className="text-[10px] text-text-muted font-mono">
               {node.learnedAt}
             </span>
           )}

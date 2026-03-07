@@ -4,6 +4,7 @@ import { useAPI } from '@/hooks/useAPI';
 import { api } from '@/lib/api';
 import { mockNodes, mockLinks } from '@/data/mockData';
 import type { NeuralNode } from '@/types/neural';
+import { CATEGORY_COLORS } from '@/types/neural';
 import NeuralFilters from './NeuralFilters';
 import NeuralLinkLine from './NeuralLink';
 import NeuralNodeCircle from './NeuralNode';
@@ -16,29 +17,22 @@ export default function NeuralGraph() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
 
-  // Fetch neural data from API (fallback to mock)
   const { data: neuralData } = useAPI(
     api.neural,
     { nodes: mockNodes, links: mockLinks },
     { pollInterval: 30_000 }
   );
 
-  // Measure container
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
     const observer = new ResizeObserver(entries => {
       const entry = entries[0];
       if (entry) {
-        setDimensions({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        });
+        setDimensions({ width: entry.contentRect.width, height: entry.contentRect.height });
         setContainerRect(container.getBoundingClientRect());
       }
     });
-
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
@@ -47,26 +41,17 @@ export default function NeuralGraph() {
   const links = neuralData?.links ?? mockLinks;
 
   const { simulatedNodes, simulatedLinks, dragStart, dragging, dragEnd } = useForceSimulation({
-    nodes,
-    links,
-    width: dimensions.width,
-    height: dimensions.height,
+    nodes, links, width: dimensions.width, height: dimensions.height,
   });
 
-  // Build connection set for highlight logic
   const connectionSet = useMemo(() => {
     const set = new Set<string>();
     const activeId = hoveredId ?? selectedId;
     if (!activeId) return set;
-
     const activeNode = nodes.find(n => n.id === activeId);
-    if (activeNode) {
-      for (const connId of activeNode.connections) {
-        set.add(connId);
-      }
-    }
+    if (activeNode) for (const connId of activeNode.connections) set.add(connId);
     return set;
-  }, [hoveredId, selectedId]);
+  }, [hoveredId, selectedId, nodes]);
 
   const isLinkHighlighted = useCallback((link: { source: string | NeuralNode; target: string | NeuralNode }) => {
     const activeId = hoveredId ?? selectedId;
@@ -76,14 +61,17 @@ export default function NeuralGraph() {
     return sourceId === activeId || targetId === activeId;
   }, [hoveredId, selectedId]);
 
-  // Hovered node for tooltip
   const hoveredNode = hoveredId ? simulatedNodes.find(n => n.id === hoveredId) : null;
 
-  // Floating particles
+  // Particles — every other link
   const particles = useMemo(() => {
     return simulatedLinks
-      .filter((_, i) => i % 3 === 0)
-      .map((link, i) => ({ link, speed: 3000 + i * 800, delay: i * 400 }));
+      .filter((_, i) => i % 2 === 0)
+      .map((link, i) => {
+        const source = link.source as NeuralNode;
+        const color = CATEGORY_COLORS[source.category] ?? '#8b5cf6';
+        return { link, speed: 2500 + i * 600, delay: i * 300, color };
+      });
   }, [simulatedLinks]);
 
   return (
@@ -95,48 +83,45 @@ export default function NeuralGraph() {
       >
         <NeuralFilters />
 
-        {/* Background gradient */}
-        <rect
-          width={dimensions.width}
-          height={dimensions.height}
-          fill="url(#bg-gradient)"
-        />
+        {/* Ambient background */}
+        <rect width={dimensions.width} height={dimensions.height} fill="url(#bg-gradient)" />
+
+        {/* Subtle grid */}
+        <rect width={dimensions.width} height={dimensions.height} fill="url(#grid)" opacity="0.5" />
 
         {/* Links */}
         <g>
           {simulatedLinks.map((link, i) => (
-            <NeuralLinkLine
-              key={i}
-              link={link}
-              highlighted={isLinkHighlighted(link)}
-            />
+            <NeuralLinkLine key={i} link={link} highlighted={isLinkHighlighted(link)} />
           ))}
         </g>
 
-        {/* Floating particles along links */}
+        {/* Flowing particles along links */}
         <g>
-          {particles.map(({ link, speed, delay }, i) => {
+          {particles.map(({ link, speed, delay, color }, i) => {
             const source = link.source as NeuralNode;
             const target = link.target as NeuralNode;
             if (!source.x || !source.y || !target.x || !target.y) return null;
 
             return (
-              <circle key={`particle-${i}`} r="1.5" fill="#06b6d4" opacity="0">
-                <animateMotion
-                  dur={`${speed}ms`}
-                  repeatCount="indefinite"
-                  begin={`${delay}ms`}
-                  path={`M${source.x},${source.y} L${target.x},${target.y}`}
-                />
-                <animate
-                  attributeName="opacity"
-                  values="0;0.5;0.5;0"
-                  keyTimes="0;0.1;0.9;1"
-                  dur={`${speed}ms`}
-                  repeatCount="indefinite"
-                  begin={`${delay}ms`}
-                />
-              </circle>
+              <g key={`particle-${i}`}>
+                {/* Particle glow */}
+                <circle r="3" fill={color} opacity="0">
+                  <animateMotion
+                    dur={`${speed}ms`} repeatCount="indefinite" begin={`${delay}ms`}
+                    path={`M${source.x},${source.y} L${target.x},${target.y}`}
+                  />
+                  <animate attributeName="opacity" values="0;0.15;0.15;0" keyTimes="0;0.1;0.9;1" dur={`${speed}ms`} repeatCount="indefinite" begin={`${delay}ms`} />
+                </circle>
+                {/* Bright core */}
+                <circle r="1.2" fill={color} opacity="0">
+                  <animateMotion
+                    dur={`${speed}ms`} repeatCount="indefinite" begin={`${delay}ms`}
+                    path={`M${source.x},${source.y} L${target.x},${target.y}`}
+                  />
+                  <animate attributeName="opacity" values="0;0.6;0.6;0" keyTimes="0;0.1;0.9;1" dur={`${speed}ms`} repeatCount="indefinite" begin={`${delay}ms`} />
+                </circle>
+              </g>
             );
           })}
         </g>
@@ -158,12 +143,12 @@ export default function NeuralGraph() {
             />
           ))}
         </g>
+
+        {/* Vignette overlay for cinematic depth */}
+        <rect width={dimensions.width} height={dimensions.height} fill="url(#vignette)" />
       </svg>
 
-      {/* Tooltip overlay */}
-      {hoveredNode && (
-        <NeuralTooltip node={hoveredNode} containerRect={containerRect} />
-      )}
+      {hoveredNode && <NeuralTooltip node={hoveredNode} containerRect={containerRect} />}
     </div>
   );
 }

@@ -15,42 +15,42 @@ const STORAGE_KEY = 'theo-sidebar-collapsed';
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
+    try { return localStorage.getItem(STORAGE_KEY) === 'true'; }
+    catch { return false; }
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, String(collapsed));
-    } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEY, String(collapsed)); }
+    catch { /* ignore */ }
   }, [collapsed]);
 
   return (
     <aside
-      className={`h-full bg-bg-card border-r border-border flex flex-col shrink-0 transition-all duration-300 ${
-        collapsed ? 'w-[68px]' : 'w-60'
+      className={`h-full bg-bg-card/80 backdrop-blur-md border-r border-white/[0.03] flex flex-col shrink-0 transition-all duration-300 relative ${
+        collapsed ? 'w-[62px]' : 'w-56'
       }`}
     >
+      {/* Subtle gradient accent on left edge */}
+      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-accent-purple/20 via-accent-cyan/10 to-transparent" />
+
       {/* Logo */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-accent-purple animate-pulse-glow shrink-0" />
+      <div className="px-4 py-5 border-b border-white/[0.03]">
+        <div className="flex items-center gap-2.5">
+          <div className="relative shrink-0">
+            <div className="w-3 h-3 rounded-full bg-accent-purple" />
+            <div className="absolute inset-0 w-3 h-3 rounded-full bg-accent-purple animate-pulse-ring" />
+          </div>
           {!collapsed && (
-            <h1 className="font-mono text-lg font-bold tracking-wider text-text-primary">
-              THEO
-            </h1>
+            <div>
+              <h1 className="font-mono text-sm font-bold tracking-[0.2em] text-gradient">THEO</h1>
+              <p className="text-[9px] text-text-muted font-mono tracking-wider mt-0.5">NEURAL CONTROL</p>
+            </div>
           )}
         </div>
-        {!collapsed && (
-          <p className="text-xs text-text-muted mt-1 font-mono">Neural Control Panel</p>
-        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 flex flex-col gap-1">
+      <nav className="flex-1 py-3 px-2 flex flex-col gap-0.5">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
@@ -58,48 +58,52 @@ export default function Sidebar() {
             end={item.to === '/'}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all duration-200 group relative ${
                 collapsed ? 'justify-center' : ''
               } ${
                 isActive
-                  ? 'bg-accent-purple/10 text-accent-purple border-l-2 border-accent-purple'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-card-hover border-l-2 border-transparent'
+                  ? 'bg-accent-purple/10 text-accent-purple'
+                  : 'text-text-muted hover:text-text-primary hover:bg-white/[0.02]'
               }`
             }
           >
-            <span className="text-base shrink-0">{item.icon}</span>
-            {!collapsed && <span>{item.label}</span>}
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 rounded-r-full bg-accent-purple" />
+                )}
+                <span className={`text-sm shrink-0 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`}>
+                  {item.icon}
+                </span>
+                {!collapsed && (
+                  <span className="font-medium tracking-wide">{item.label}</span>
+                )}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      {/* Footer: Status + Collapse Toggle */}
-      <div className="p-3 border-t border-border">
-        {/* System Status */}
-        <div className={`flex items-center gap-2 text-xs text-text-muted ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-2 h-2 rounded-full bg-success animate-status-pulse shrink-0" />
-          {!collapsed && <span className="font-mono">Sistema Online</span>}
+      {/* Footer */}
+      <div className="px-3 py-3 border-t border-white/[0.03]">
+        {/* System status */}
+        <div className={`flex items-center gap-2 text-[10px] text-text-muted ${collapsed ? 'justify-center' : ''}`}>
+          <div className="w-1.5 h-1.5 rounded-full bg-success animate-status-pulse shrink-0" />
+          {!collapsed && <span className="font-mono tracking-wide">Online</span>}
         </div>
 
-        {/* Collapse Toggle */}
+        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(prev => !prev)}
-          className={`mt-3 w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-primary hover:bg-bg-card-hover transition-colors ${
+          className={`mt-2 w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] text-text-muted hover:text-text-secondary hover:bg-white/[0.02] transition-all ${
             collapsed ? 'justify-center' : ''
           }`}
-          aria-label={collapsed ? 'Expandir barra lateral' : 'Recolher barra lateral'}
+          aria-label={collapsed ? 'Expandir' : 'Recolher'}
           title={collapsed ? 'Expandir' : 'Recolher'}
         >
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={`shrink-0 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
           >
             <path d="M15 18l-6-6 6-6" />

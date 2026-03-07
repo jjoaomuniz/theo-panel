@@ -15,7 +15,6 @@ export default function NeuralLinkLine({ link, highlighted }: Props) {
 
   if (!source.x || !source.y || !target.x || !target.y) return null;
 
-  // Birth animation on first render
   useEffect(() => {
     if (animatedRef.current || !lineRef.current) return;
     const line = lineRef.current;
@@ -26,20 +25,33 @@ export default function NeuralLinkLine({ link, highlighted }: Props) {
     line.style.setProperty('--link-length', String(length));
     line.style.strokeDasharray = String(length);
     line.style.strokeDashoffset = String(length);
-    line.style.animation = 'link-draw 0.8s ease-out forwards';
+    line.style.animation = 'link-draw 1s ease-out forwards';
     animatedRef.current = true;
   }, [source.x, source.y, target.x, target.y]);
 
   return (
-    <line
-      ref={lineRef}
-      x1={source.x}
-      y1={source.y}
-      x2={target.x}
-      y2={target.y}
-      stroke={highlighted ? 'rgba(124, 58, 237, 0.4)' : 'rgba(255, 255, 255, 0.06)'}
-      strokeWidth={highlighted ? 1.5 : 0.8}
-      style={{ transition: 'stroke 0.3s, stroke-width 0.3s' }}
-    />
+    <>
+      {/* Glow underline for highlighted links */}
+      {highlighted && (
+        <line
+          x1={source.x} y1={source.y}
+          x2={target.x} y2={target.y}
+          stroke="url(#link-gradient-purple)"
+          strokeWidth={4}
+          opacity={0.15}
+          filter="url(#glow-subtle)"
+        />
+      )}
+
+      {/* Main link line */}
+      <line
+        ref={lineRef}
+        x1={source.x} y1={source.y}
+        x2={target.x} y2={target.y}
+        stroke={highlighted ? 'rgba(139, 92, 246, 0.5)' : 'rgba(255, 255, 255, 0.04)'}
+        strokeWidth={highlighted ? 1.5 : 0.6}
+        style={{ transition: 'stroke 0.4s, stroke-width 0.4s' }}
+      />
+    </>
   );
 }
