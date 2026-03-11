@@ -4,6 +4,12 @@ import { useState, useEffect } from 'react';
 const navItems = [
   { to: '/', label: 'Neural Map', icon: '\u{1F9E0}' },
   { to: '/dashboard', label: 'Dashboard', icon: '\u{1F4CA}' },
+  { to: '/tasks', label: 'Tasks', icon: '\u{1F4CB}' },
+  { to: '/pipeline', label: 'Pipeline', icon: '\u{1F3AC}' },
+  { to: '/memory', label: 'Memory', icon: '\u{1F4DD}' },
+  { to: '/calendar', label: 'Calendar', icon: '\u{1F4C5}' },
+  { to: '/office', label: 'Office', icon: '\u{1F3E2}' },
+  { to: '/team', label: 'Team', icon: '\u{1F465}' },
   { to: '/agents', label: 'Agentes', icon: '\u{1F916}' },
   { to: '/coverage', label: 'Cobertura', icon: '\u{1F3AF}' },
   { to: '/costs', label: 'Custos', icon: '\u{1F4B0}' },
