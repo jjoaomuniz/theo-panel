@@ -2,39 +2,23 @@ import dotenv from 'dotenv';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
-import type { AgentConfig } from './types/index.js';
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ─── Agent definitions ──────────────────────────────────────
-export const AGENTS: AgentConfig[] = [
-  {
-    id: 'bruno',
-    name: 'Bruno',
-    role: 'CTO — Infra & Código',
-    emoji: '🧠',
-    model: 'moonshotai/kimi-k2.5',
-    dirName: 'bruno',
-  },
-  {
-    id: 'leo',
-    name: 'Leo',
-    role: 'CFO — Finanças & Custos',
-    emoji: '📊',
-    model: 'moonshotai/kimi-k2.5',
-    dirName: 'leo',
-  },
-  {
-    id: 'marco',
-    name: 'Marco',
-    role: 'COO — Operações & Processos',
-    emoji: '⚙️',
-    model: 'moonshotai/kimi-k2.5',
-    dirName: 'marco',
-  },
-];
+// ─── Known agent metadata (role/emoji for display) ──────────
+// Agents not listed here will use generic fallbacks.
+export const KNOWN_AGENT_METADATA: Record<string, { name: string; role: string; emoji: string }> = {
+  main:   { name: 'Theo',   role: 'CEO — Estratégia & Decisões',    emoji: '👑' },
+  bruno:  { name: 'Bruno',  role: 'CTO — Infra & Código',            emoji: '🧠' },
+  leo:    { name: 'Leo',    role: 'CFO — Finanças & Custos',         emoji: '📊' },
+  marco:  { name: 'Marco',  role: 'COO — Operações & Processos',     emoji: '⚙️' },
+  carla:  { name: 'Carla',  role: 'CHRO — Pessoas & Cultura',        emoji: '🌟' },
+  rafael: { name: 'Rafael', role: 'CLO — Jurídico & Compliance',     emoji: '⚖️' },
+  'salomao-onchain': { name: 'Salomão', role: 'Trader DeFi — Solana',                emoji: '💰' },
+  joao:              { name: 'João',    role: 'Analista de Vendas — Lubrificantes', emoji: '📈' },
+};
 
 // ─── Environment ─────────────────────────────────────────────
 const homeDir = os.homedir(); // cross-platform (Windows + Linux)
@@ -53,6 +37,15 @@ export const config = {
 
   // Cron jobs config
   cronjobsFile: process.env.CRONJOBS_FILE || path.join(__dirname, '..', 'cronjobs.json'),
+
+  // Panel auth
+  panelUsername: process.env.PANEL_USERNAME || 'admin',
+  panelPassword: process.env.PANEL_PASSWORD || 'admin',
+
+  // Integrations (MCP tokens)
+  githubToken: process.env.GITHUB_TOKEN || '',
+  vercelToken: process.env.VERCEL_TOKEN || '',
+  supabaseToken: process.env.SUPABASE_TOKEN || '',
 
   // Cache TTLs (milliseconds)
   cacheTTL: {

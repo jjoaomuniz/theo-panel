@@ -1,232 +1,282 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
-type Tag = 'decisao' | 'tech' | 'ops' | 'financas' | 'dev';
+type MemoryTag = 'Decisão' | 'Tech' | 'Ops' | 'Finanças' | 'Dev';
 
 interface MemoryEntry {
   id: string;
   content: string;
-  tags: Tag[];
-  createdAt: string;
+  tags: MemoryTag[];
+  timestamp: string;
+  date: string;
 }
 
-const TAG_CONFIG: Record<Tag, { label: string; color: string }> = {
-  decisao: { label: 'Decisao', color: '#c9a84c' },
-  tech: { label: 'Tech', color: '#8b5cf6' },
-  ops: { label: 'Ops', color: '#00d4ff' },
-  financas: { label: 'Financas', color: '#34d399' },
-  dev: { label: 'Dev', color: '#f472b6' },
-};
+const ALL_TAGS: MemoryTag[] = ['Decisão', 'Tech', 'Ops', 'Finanças', 'Dev'];
 
-const ALL_TAGS = Object.keys(TAG_CONFIG) as Tag[];
+const TAG_COLORS: Record<MemoryTag, string> = {
+  'Decisão':  '#c9a84c',
+  'Tech':     '#00d4ff',
+  'Ops':      '#8b5cf6',
+  'Finanças': '#34d399',
+  'Dev':      '#f472b6',
+};
 
 const STORAGE_KEY = 'theo-memory';
 
-function loadEntries(): MemoryEntry[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function daysAgo(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
 }
 
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+const defaultEntries: MemoryEntry[] = [
+  {
+    id: '1',
+    content: 'Decidido migrar o painel para React + TypeScript. Stack: Vite, Tailwind v4, React Router v7. Deploy no Vercel.',
+    tags: ['Decisão', 'Tech', 'Dev'],
+    timestamp: new Date(daysAgo(2) + 'T10:30:00').toISOString(),
+    date: daysAgo(2),
+  },
+  {
+    id: '2',
+    content: 'MCP configurado no OpenClaw via mcporter: discord (22 tools), notion (22 tools), filesystem (14 tools). Binário instalado globalmente.',
+    tags: ['Tech', 'Ops'],
+    timestamp: new Date(daysAgo(1) + 'T14:20:00').toISOString(),
+    date: daysAgo(1),
+  },
+  {
+    id: '3',
+    content: 'Bruno agora sabe configurar novos MCPs quando solicitado. Skill add-mcp criada no workspace-bruno com guia completo.',
+    tags: ['Ops', 'Dev'],
+    timestamp: new Date(daysAgo(1) + 'T16:45:00').toISOString(),
+    date: daysAgo(1),
+  },
+  {
+    id: '4',
+    content: 'Theo agora tem voz (ElevenLabs — Brian voice) e escuta áudios (faster-whisper base model). TTS modo inbound: responde em áudio quando recebe áudio.',
+    tags: ['Tech'],
+    timestamp: new Date(todayStr() + 'T09:15:00').toISOString(),
+    date: todayStr(),
+  },
+];
+
+function formatDateLabel(dateStr: string): string {
+  const today = todayStr();
+  const yesterday = daysAgo(1);
+  if (dateStr === today) return 'Hoje';
+  if (dateStr === yesterday) return 'Ontem';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+function formatTime(ts: string): string {
+  return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function Memory() {
-  const [entries, setEntries] = useState<MemoryEntry[]>(loadEntries);
-  const [search, setSearch] = useState('');
-  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  const [entries, setEntries] = useState<MemoryEntry[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? (JSON.parse(stored) as MemoryEntry[]) : defaultEntries;
+    } catch { return defaultEntries; }
+  });
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [filterTags, setFilterTags] = useState<MemoryTag[]>([]);
+  const [content, setContent] = useState('');
+  const [newTags, setNewTags] = useState<MemoryTag[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [formContent, setFormContent] = useState('');
-  const [formTags, setFormTags] = useState<Tag[]>([]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+    catch { /* ignore */ }
   }, [entries]);
 
-  const addEntry = useCallback(() => {
-    if (!formContent.trim()) return;
-    const entry: MemoryEntry = {
-      id: crypto.randomUUID(),
-      content: formContent.trim(),
-      tags: formTags.length > 0 ? formTags : ['tech'],
-      createdAt: new Date().toISOString(),
-    };
-    setEntries(prev => [entry, ...prev]);
-    setFormContent('');
-    setFormTags([]);
-    setShowForm(false);
-  }, [formContent, formTags]);
-
-  const deleteEntry = useCallback((id: string) => {
-    setEntries(prev => prev.filter(e => e.id !== id));
-  }, []);
-
-  const toggleFormTag = useCallback((tag: Tag) => {
-    setFormTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
-  }, []);
-
-  // Group entries by date
   const dateGroups = useMemo(() => {
-    const groups = new Map<string, MemoryEntry[]>();
-    for (const entry of entries) {
-      const date = entry.createdAt.split('T')[0];
-      if (!groups.has(date)) groups.set(date, []);
-      groups.get(date)!.push(entry);
-    }
-    return Array.from(groups.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+    const map = new Map<string, number>();
+    entries.forEach(e => map.set(e.date, (map.get(e.date) ?? 0) + 1));
+    return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
   }, [entries]);
 
   const filtered = useMemo(() => {
-    let list = entries;
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter(e => e.content.toLowerCase().includes(q));
-    }
-    if (selectedTag) {
-      list = list.filter(e => e.tags.includes(selectedTag));
-    }
-    if (selectedDate) {
-      list = list.filter(e => e.createdAt.startsWith(selectedDate));
-    }
-    return list;
-  }, [entries, search, selectedTag, selectedDate]);
+    return entries
+      .filter(e => {
+        if (selectedDate && e.date !== selectedDate) return false;
+        if (search && !e.content.toLowerCase().includes(search.toLowerCase())) return false;
+        if (filterTags.length > 0 && !filterTags.every(t => e.tags.includes(t))) return false;
+        return true;
+      })
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  }, [entries, selectedDate, search, filterTags]);
+
+  const addEntry = () => {
+    if (!content.trim()) return;
+    const now = new Date();
+    const entry: MemoryEntry = {
+      id: Date.now().toString(),
+      content: content.trim(),
+      tags: newTags,
+      timestamp: now.toISOString(),
+      date: now.toISOString().split('T')[0],
+    };
+    setEntries(prev => [...prev, entry]);
+    setContent('');
+    setNewTags([]);
+    setShowForm(false);
+  };
+
+  const deleteEntry = (id: string) => setEntries(prev => prev.filter(e => e.id !== id));
+
+  const toggleFilterTag = (tag: MemoryTag) =>
+    setFilterTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+
+  const toggleNewTag = (tag: MemoryTag) =>
+    setNewTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
 
   return (
     <div className="h-full flex overflow-hidden">
-      {/* Sidebar: dates */}
-      <div className="w-48 shrink-0 border-r border-white/[0.04] flex flex-col overflow-hidden">
-        <div className="px-4 py-4 border-b border-white/[0.04]">
-          <h2 className="text-xs font-mono font-bold text-text-secondary tracking-wide">DATAS</h2>
+      {/* Date sidebar */}
+      <aside className="w-44 shrink-0 border-r border-white/[0.03] flex flex-col bg-bg-card/50">
+        <div className="px-3 py-3 border-b border-white/[0.03]">
+          <p className="text-[9px] font-mono text-text-muted uppercase tracking-widest">Entradas por Data</p>
         </div>
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 px-2">
           <button
             onClick={() => setSelectedDate(null)}
-            className={`w-full text-left px-4 py-2 text-[11px] font-mono transition-colors ${
-              !selectedDate ? 'text-[#c9a84c] bg-[#c9a84c]/10' : 'text-text-muted hover:text-text-primary hover:bg-white/[0.02]'
+            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all mb-1 flex items-center justify-between ${
+              !selectedDate ? 'text-accent-purple bg-accent-purple/10' : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.02]'
             }`}
-          >Todas</button>
-          {dateGroups.map(([date, items]) => (
+          >
+            <span>Todas</span>
+            <span className="text-[9px] font-mono opacity-60">{entries.length}</span>
+          </button>
+          {dateGroups.map(([date, count]) => (
             <button
               key={date}
-              onClick={() => setSelectedDate(selectedDate === date ? null : date)}
-              className={`w-full text-left px-4 py-2 text-[11px] font-mono transition-colors flex justify-between ${
-                selectedDate === date ? 'text-[#c9a84c] bg-[#c9a84c]/10' : 'text-text-muted hover:text-text-primary hover:bg-white/[0.02]'
+              onClick={() => setSelectedDate(date === selectedDate ? null : date)}
+              className={`w-full text-left px-2.5 py-1.5 rounded-lg transition-all flex items-center justify-between mb-0.5 ${
+                date === selectedDate ? 'text-accent-purple bg-accent-purple/10' : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.02]'
               }`}
             >
-              <span>{formatDate(date + 'T00:00:00')}</span>
-              <span className="text-text-muted">{items.length}</span>
+              <span className="text-[10px] font-mono">{formatDateLabel(date)}</span>
+              <span className="text-[9px] font-mono bg-bg-elevated px-1 rounded opacity-60">{count}</span>
             </button>
           ))}
         </div>
-      </div>
+      </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col p-6 gap-4 overflow-hidden">
-        <div className="flex items-center justify-between shrink-0">
-          <div>
-            <h1 className="text-xl font-bold font-mono tracking-wide">Memory</h1>
-            <p className="text-xs text-text-muted mt-1 font-mono">{entries.length} entradas</p>
-          </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 rounded-lg text-xs font-mono font-bold transition-all"
-            style={{ background: '#c9a84c20', color: '#c9a84c', border: '1px solid #c9a84c30' }}
-          >+ Nova Entrada</button>
-        </div>
-
-        {/* Search + Tag Filters */}
-        <div className="flex items-center gap-3 shrink-0">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Toolbar */}
+        <div className="px-5 py-3 border-b border-white/[0.03] flex items-center gap-3 shrink-0 flex-wrap">
+          <h1 className="text-lg font-semibold tracking-wide shrink-0">Memory</h1>
           <input
-            placeholder="Buscar..."
+            className="flex-1 min-w-32 px-3 py-1.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary placeholder:text-text-muted font-mono focus:outline-none focus:border-border-hover"
+            placeholder="Buscar entradas..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-bg-primary border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-mono text-text-primary outline-none focus:border-[#c9a84c]/40"
           />
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 shrink-0 flex-wrap">
             {ALL_TAGS.map(tag => (
               <button
                 key={tag}
-                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                className="px-2.5 py-1 rounded-full text-[9px] font-mono font-bold transition-all"
+                onClick={() => toggleFilterTag(tag)}
+                className="px-2 py-1 rounded-lg text-[9px] font-mono transition-all"
                 style={{
-                  color: TAG_CONFIG[tag].color,
-                  background: selectedTag === tag ? TAG_CONFIG[tag].color + '25' : 'transparent',
-                  border: `1px solid ${selectedTag === tag ? TAG_CONFIG[tag].color + '40' : 'rgba(255,255,255,0.06)'}`,
+                  background: filterTags.includes(tag) ? TAG_COLORS[tag] + '20' : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${filterTags.includes(tag) ? TAG_COLORS[tag] + '50' : 'rgba(255,255,255,0.05)'}`,
+                  color: filterTags.includes(tag) ? TAG_COLORS[tag] : '#475569',
                 }}
-              >{TAG_CONFIG[tag].label}</button>
+              >{tag}</button>
             ))}
           </div>
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="px-3 py-1.5 rounded-lg text-xs font-mono shrink-0 transition-all"
+            style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.3)', color: '#c9a84c' }}
+          >
+            + Entrada
+          </button>
         </div>
 
-        {/* New Entry Form */}
+        {/* New entry form */}
         {showForm && (
-          <div className="glass rounded-xl p-4 shrink-0 animate-slide-up">
+          <div className="mx-5 mt-3 p-4 rounded-2xl border border-white/[0.05] bg-bg-card shrink-0 animate-slide-in">
             <textarea
-              placeholder="Escreva uma nova entrada..."
-              value={formContent}
-              onChange={e => setFormContent(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-bg-elevated border border-border text-sm text-text-primary placeholder:text-text-muted font-mono focus:outline-none focus:border-border-hover resize-none mb-3"
               rows={3}
-              className="w-full bg-bg-primary border border-white/[0.06] rounded-lg px-3 py-2 text-xs font-mono text-text-primary outline-none focus:border-[#c9a84c]/40 resize-none"
+              placeholder="O que aconteceu? Decisão tomada, aprendizado, observação..."
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              autoFocus
             />
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex gap-1.5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex gap-1.5 flex-wrap">
                 {ALL_TAGS.map(tag => (
                   <button
                     key={tag}
-                    onClick={() => toggleFormTag(tag)}
-                    className="px-2 py-1 rounded-full text-[9px] font-mono font-bold transition-all"
+                    onClick={() => toggleNewTag(tag)}
+                    className="px-2 py-1 rounded-lg text-[9px] font-mono transition-all"
                     style={{
-                      color: TAG_CONFIG[tag].color,
-                      background: formTags.includes(tag) ? TAG_CONFIG[tag].color + '25' : 'transparent',
-                      border: `1px solid ${formTags.includes(tag) ? TAG_CONFIG[tag].color + '40' : 'rgba(255,255,255,0.06)'}`,
+                      background: newTags.includes(tag) ? TAG_COLORS[tag] + '20' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${newTags.includes(tag) ? TAG_COLORS[tag] + '50' : 'rgba(255,255,255,0.05)'}`,
+                      color: newTags.includes(tag) ? TAG_COLORS[tag] : '#475569',
                     }}
-                  >{TAG_CONFIG[tag].label}</button>
+                  >{tag}</button>
                 ))}
               </div>
-              <button onClick={addEntry} className="px-4 py-1.5 rounded-lg text-xs font-mono font-bold" style={{ background: '#c9a84c', color: '#06060b' }}>Salvar</button>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-text-muted">
+                  {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+                <button onClick={addEntry} className="px-4 py-1.5 rounded-lg text-xs font-mono bg-accent-purple/20 text-accent-purple border border-accent-purple/30 hover:bg-accent-purple/30 transition-colors">
+                  Salvar
+                </button>
+                <button
+                  onClick={() => { setShowForm(false); setContent(''); setNewTags([]); }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-mono text-text-muted border border-border hover:border-border-hover transition-colors"
+                >Cancelar</button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Entry List */}
-        <div className="flex-1 overflow-y-auto flex flex-col gap-2">
+        {/* Entries */}
+        <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3">
+          {filtered.length === 0 && (
+            <div className="flex-1 flex items-center justify-center text-text-muted text-xs font-mono opacity-50 py-20">
+              Nenhuma entrada encontrada
+            </div>
+          )}
           {filtered.map(entry => (
-            <div key={entry.id} className="bg-bg-card border border-white/[0.04] rounded-lg p-4 hover:border-white/[0.08] transition-all group">
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-xs text-text-primary leading-relaxed flex-1">{entry.content}</p>
+            <div key={entry.id} className="bg-bg-card rounded-2xl border border-white/[0.04] p-4 card-hover group animate-fade-in">
+              <div className="flex items-start gap-3 mb-3">
+                <p className="text-sm text-text-primary leading-relaxed flex-1">{entry.content}</p>
                 <button
                   onClick={() => deleteEntry(entry.id)}
-                  className="text-text-muted hover:text-error text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                >x</button>
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-error text-[10px] shrink-0 mt-0.5"
+                >✕</button>
               </div>
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex gap-1.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex gap-1.5 flex-wrap">
                   {entry.tags.map(tag => (
                     <span
                       key={tag}
-                      className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full"
-                      style={{ color: TAG_CONFIG[tag].color, background: TAG_CONFIG[tag].color + '15' }}
-                    >{TAG_CONFIG[tag].label}</span>
+                      className="px-2 py-0.5 rounded-full text-[9px] font-mono"
+                      style={{ background: TAG_COLORS[tag] + '20', color: TAG_COLORS[tag] }}
+                    >{tag}</span>
                   ))}
+                  {entry.tags.length === 0 && (
+                    <span className="text-[9px] font-mono text-text-muted opacity-40">sem tags</span>
+                  )}
                 </div>
-                <span className="text-[10px] font-mono text-text-muted">
-                  {formatDate(entry.createdAt)} {formatTime(entry.createdAt)}
+                <span className="text-[10px] font-mono text-text-muted shrink-0">
+                  {formatDateLabel(entry.date)} · {formatTime(entry.timestamp)}
                 </span>
               </div>
             </div>
           ))}
-          {filtered.length === 0 && (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs text-text-muted font-mono">Nenhuma entrada encontrada</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

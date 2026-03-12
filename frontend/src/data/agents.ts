@@ -1,19 +1,19 @@
-export interface TheoAgent {
+export interface PanelAgent {
   id: string;
   name: string;
   role: string;
   color: string;
   avatar: string;
   status: 'working' | 'idle';
-  skills: string[];
 }
 
-export const AGENTS: TheoAgent[] = [
-  { id: 'theo', name: 'Theo Muniz', role: 'Chief of Staff / Orchestrator', color: '#c9a84c', avatar: '\u{1F9E0}', status: 'working', skills: ['Orquestracao', 'Briefings', 'Alertas', 'Memoria', 'Decisoes'] },
-  { id: 'bruno', name: 'Bruno', role: 'CTO — Tecnologia & Dev', color: '#00d4ff', avatar: '\u{26A1}', status: 'working', skills: ['Codigo', 'Deploy', 'Infra', 'GitHub', 'Code Review'] },
-  { id: 'leo', name: 'Leo', role: 'CFO — Financas & Controle', color: '#00ff88', avatar: '\u{1F4CA}', status: 'idle', skills: ['Custos', 'Relatorios', 'OpenRouter', 'Metricas', 'Budget'] },
-  { id: 'marco', name: 'Marco', role: 'COO — Operacoes', color: '#8b5cf6', avatar: '\u{2699}\u{FE0F}', status: 'working', skills: ['Cron Jobs', 'Automacao', 'Telegram', 'Monitoramento', 'Logs'] },
-  { id: 'carla', name: 'Carla', role: 'CHRO — Pessoas & Cultura', color: '#f472b6', avatar: '\u{1F465}', status: 'idle', skills: ['Familia', 'Agenda Pessoal', 'Saude', 'Educacao', 'Bem-estar'] },
+export const AGENTS: PanelAgent[] = [
+  { id: 'theo',  name: 'Theo Muniz', role: 'Chief of Staff / Orchestrator', color: '#c9a84c', avatar: '🧠', status: 'working' },
+  { id: 'bruno', name: 'Bruno',      role: 'CTO — Tecnologia & Dev',        color: '#00d4ff', avatar: '⚡', status: 'working' },
+  { id: 'leo',   name: 'Leo',        role: 'CFO — Finanças & Controle',     color: '#00ff88', avatar: '📊', status: 'idle'    },
+  { id: 'marco', name: 'Marco',      role: 'COO — Operações',               color: '#8b5cf6', avatar: '⚙️', status: 'working' },
+  { id: 'carla',           name: 'Carla',   role: 'CHRO — Pessoas & Cultura',       color: '#f472b6', avatar: '👥', status: 'idle' },
+  { id: 'rafael',          name: 'Rafael',  role: 'CLO — Jurídico & Compliance',    color: '#fb923c', avatar: '⚖️', status: 'idle' },
+  { id: 'salomao-onchain', name: 'Salomão', role: 'Trader DeFi — Solana',           color: '#fbbf24', avatar: '💰', status: 'idle' },
+  { id: 'joao',            name: 'João',    role: 'Analista de Vendas — Lubrificantes', color: '#4ade80', avatar: '📈', status: 'idle' },
 ];
-
-export const AGENT_MAP = Object.fromEntries(AGENTS.map(a => [a.id, a]));
