@@ -1,8 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { config, AGENTS } from '../config.js';
 import { cache } from './cache.js';
 import type { Agent, AgentStatus, ActivityItem, ActivityType } from '../types/index.js';
+
+const execAsync = promisify(exec);
 
 // ─── JSONL Entry types (OpenClaw session format) ────────────
 interface SessionEntry {
@@ -89,10 +93,77 @@ function extractText(entry: SessionEntry): string {
 
 // ─── Public API ─────────────────────────────────────────────
 
+/** Read current model assignment from openclaw.json */
+async function getCurrentModels(): Promise<Record<string, string>> {
+  try {
+    const content = await fs.readFile(path.join(config.openclawDir, 'openclaw.json'), 'utf-8');
+    const data = JSON.parse(content);
+    const models: Record<string, string> = {};
+    const defaultModel = data.agents?.defaults?.model?.primary || '';
+    if (defaultModel) models['__default'] = defaultModel;
+    for (const agent of data.agents?.list || []) {
+      if (agent.id && agent.model?.primary) {
+        models[agent.id] = agent.model.primary;
+      }
+    }
+    return models;
+  } catch {
+    return {};
+  }
+}
+
+/** Get list of available models from openclaw.json */
+export async function getAvailableModels(): Promise<{ id: string; name: string; priceIn: number; priceOut: number }[]> {
+  try {
+    const content = await fs.readFile(path.join(config.openclawDir, 'openclaw.json'), 'utf-8');
+    const data = JSON.parse(content);
+    const models = data.models?.providers?.openrouter?.models || [];
+    return models.map((m: { id: string; name: string; cost?: { input?: number; output?: number } }) => ({
+      id: `openrouter/${m.id}`,
+      name: m.name || m.id,
+      priceIn: m.cost?.input || 0,
+      priceOut: m.cost?.output || 0,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** Update an agent's model in openclaw.json */
+export async function updateAgentModel(agentId: string, newModel: string): Promise<void> {
+  const filePath = path.join(config.openclawDir, 'openclaw.json');
+  const content = await fs.readFile(filePath, 'utf-8');
+  const data = JSON.parse(content);
+
+  let found = false;
+  for (const agent of data.agents?.list || []) {
+    if (agent.id === agentId) {
+      if (!agent.model) agent.model = {};
+      agent.model.primary = newModel;
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    throw new Error(`Agent ${agentId} not found in openclaw.json`);
+  }
+
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+
+  // Fix file ownership so the container can read it
+  await execAsync('chown 1000 ' + filePath).catch(() => {});
+
+  // Invalidate caches
+  cache.invalidatePrefix('openclaw:');
+}
+
 /** Get all agents with their current status */
 export async function getAgents(): Promise<Agent[]> {
   const cached = cache.get<Agent[]>('openclaw:agents');
   if (cached) return cached;
+
+  const currentModels = await getCurrentModels();
 
   const agents = await Promise.all(
     AGENTS.map(async (agentConfig) => {
@@ -182,7 +253,7 @@ export async function getAgents(): Promise<Agent[]> {
         role: agentConfig.role,
         emoji: agentConfig.emoji,
         status,
-        model: agentConfig.model,
+        model: currentModels[agentConfig.id] || currentModels['__default'] || agentConfig.model,
         lastAction,
         lastActionTime,
         tokensToday,

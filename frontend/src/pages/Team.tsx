@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, useCallback } from 'react';
+import { useState } from 'react';
 import type { PanelAgent } from '@/data/agents';
 import { useAgents } from '@/hooks/useAgents';
 
@@ -11,17 +11,19 @@ const SKILLS: Record<string, string[]> = {
   rafael:           ['Direito do Consumidor', 'PROCON', 'Contratos', 'LGPD', 'Trabalhista', 'Juizado Especial'],
   'salomao-onchain':['DeFi', 'Solana', 'Arbitragem', 'Kamino', 'Copy Trading', 'Yield'],
   joao:             ['SQL Server', 'Vendas', 'Aditivos', 'Lubrificantes', 'Relatórios', 'Análise'],
+  'argus':          ['Prometheus', 'Docker', 'Logs', 'Health Checks', 'Alertas', 'VPS', 'Uptime', 'Infra'],
 };
 
 const DETAILS: Record<string, { model: string; channel: string; workspace: string }> = {
-  theo:             { model: 'kimi-k2.5', channel: 'Telegram · Discord · WhatsApp',  workspace: '/root/.openclaw/workspace' },
-  bruno:            { model: 'kimi-k2.5', channel: 'Discord (@Bruno-CTO)',            workspace: '/root/.openclaw/workspace-bruno' },
-  leo:              { model: 'kimi-k2.5', channel: 'Discord (@Leo-CFO)',              workspace: '/root/.openclaw/workspace-leo' },
-  marco:            { model: 'kimi-k2.5', channel: 'Discord (@Marco-COO)',            workspace: '/root/.openclaw/workspace-marco' },
-  carla:            { model: 'kimi-k2.5', channel: 'Discord (@Carla-CHRO)',           workspace: '/root/.openclaw/workspace-carla' },
-  rafael:           { model: 'kimi-k2.5', channel: 'Discord (@Rafael-CLO)',           workspace: '/root/.openclaw/workspace-rafael' },
-  'salomao-onchain':{ model: 'kimi-k2.5', channel: 'Discord (@Salomão)',             workspace: '/root/.openclaw/workspace/theo-trader' },
-  joao:             { model: 'kimi-k2.5', channel: 'Discord (@João)',                workspace: '/root/.openclaw/workspace-joao' },
+  theo:             { model: 'gemini-2.5-pro',    channel: 'Telegram · Discord · WhatsApp',  workspace: '/root/.openclaw/workspace' },
+  bruno:            { model: 'claude-sonnet-4-5', channel: 'Discord (@Bruno-CTO)',            workspace: '/root/.openclaw/workspace-bruno' },
+  leo:              { model: 'qwen3-235b-a22b',   channel: 'Discord (@Leo-CFO)',              workspace: '/root/.openclaw/workspace-leo' },
+  marco:            { model: 'gemini-2.5-pro',    channel: 'Discord (@Marco-COO)',            workspace: '/root/.openclaw/workspace-marco' },
+  carla:            { model: 'qwen3-235b-a22b',   channel: 'Discord (@Carla-CHRO)',           workspace: '/root/.openclaw/workspace-carla' },
+  rafael:           { model: 'deepseek-r1',       channel: 'Discord (@Rafael-CLO)',           workspace: '/root/.openclaw/workspace-rafael' },
+  'salomao-onchain':{ model: 'qwen3-235b-a22b',   channel: 'Discord (@Salomão)',              workspace: '/root/.openclaw/workspace/theo-trader' },
+  joao:             { model: 'qwen3-235b-a22b',   channel: 'Discord (@João)',                 workspace: '/root/.openclaw/workspace-joao' },
+  'argus':          { model: 'gemini-2.5-flash', channel: 'Discord (@Argus-SRE)', workspace: '/root/.openclaw/workspace-argus' },
 };
 
 function Detail({ label, value, color, mono }: { label: string; value: string; color: string; mono?: boolean }) {
@@ -31,74 +33,6 @@ function Detail({ label, value, color, mono }: { label: string; value: string; c
       <p className={`text-xs ${mono ? 'font-mono text-text-muted text-[10px] break-all' : 'text-text-secondary'}`}>{value}</p>
     </div>
   );
-}
-
-// ── SVG org-chart lines ───────────────────────────────────────
-interface OrgLinesProps {
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  theoRef:      React.RefObject<HTMLDivElement | null>;
-  cardRefs:     React.MutableRefObject<(HTMLDivElement | null)[]>;
-  agentCount:   number;
-  expanded:     string | null;
-}
-
-function useOrgLines({ containerRef, theoRef, cardRefs, agentCount, expanded }: OrgLinesProps) {
-  const [paths, setPaths] = useState<string[]>([]);
-  const [dots,  setDots]  = useState<{ cx: number; cy: number }[]>([]);
-  const [dims,  setDims]  = useState({ w: 0, h: 0 });
-
-  const measure = useCallback(() => {
-    const container = containerRef.current;
-    const theoCard  = theoRef.current;
-    if (!container || !theoCard) return;
-
-    const cRect = container.getBoundingClientRect();
-    const tRect = theoCard.getBoundingClientRect();
-
-    const stemX    = tRect.left + tRect.width / 2 - cRect.left;
-    const stemY    = tRect.bottom - cRect.top;
-
-    const validCards = cardRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (!validCards.length) return;
-
-    const cardRects = validCards.map(el => el.getBoundingClientRect());
-    const midY = stemY + (cardRects[0].top - cRect.top - stemY) / 2;
-
-    const newPaths: string[] = [];
-    const newDots:  { cx: number; cy: number }[] = [];
-
-    // Vertical stem from Theo → mid
-    newPaths.push(`M ${stemX} ${stemY} L ${stemX} ${midY}`);
-    newDots.push({ cx: stemX, cy: midY });
-
-    // Horizontal bar (first → last card center)
-    const cxFirst = cardRects[0].left + cardRects[0].width / 2 - cRect.left;
-    const cxLast  = cardRects[cardRects.length - 1].left + cardRects[cardRects.length - 1].width / 2 - cRect.left;
-    if (Math.abs(cxLast - cxFirst) > 4) {
-      newPaths.push(`M ${cxFirst} ${midY} L ${cxLast} ${midY}`);
-    }
-
-    // Vertical drops to each card
-    for (const r of cardRects) {
-      const cx      = r.left + r.width / 2 - cRect.left;
-      const cardTop = r.top - cRect.top;
-      newPaths.push(`M ${cx} ${midY} L ${cx} ${cardTop}`);
-      newDots.push({ cx, cy: cardTop });
-    }
-
-    setDims({ w: cRect.width, h: cRect.height });
-    setPaths(newPaths);
-    setDots(newDots);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useLayoutEffect(() => {
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
-  }, [measure, agentCount, expanded]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { paths, dots, dims };
 }
 
 // ── Theo hero card ────────────────────────────────────────────
@@ -230,24 +164,11 @@ export default function Team() {
   const subagents = agents.slice(1);
   const working   = agents.filter(a => a.status === 'working').length;
 
-  // Refs for SVG org lines
-  const containerRef = useRef<HTMLDivElement>(null);
-  const theoRef      = useRef<HTMLDivElement>(null);
-  const cardRefs     = useRef<(HTMLDivElement | null)[]>([]);
-
-  const { paths, dots, dims } = useOrgLines({
-    containerRef,
-    theoRef,
-    cardRefs,
-    agentCount: agents.length,
-    expanded,
-  });
-
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-8 mesh-gradient">
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8 max-w-3xl mx-auto">
+      <div className="flex items-center gap-3 mb-8 max-w-4xl mx-auto">
         <h1 className="text-[11px] font-mono font-bold tracking-[0.2em] text-gradient">TEAM</h1>
         <div className="h-px flex-1 bg-gradient-to-r from-white/[0.05] to-transparent" />
         <div className="flex items-center gap-2.5 text-[10px] font-mono">
@@ -257,75 +178,46 @@ export default function Team() {
         </div>
       </div>
 
-      {/* Org chart container — SVG overlay + cards */}
-      <div ref={containerRef} className="max-w-3xl mx-auto relative">
-
-        {/* SVG connection lines */}
-        {dims.w > 0 && (
-          <svg
-            className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: 0, overflow: 'visible' }}
-            width={dims.w}
-            height={dims.h}
-          >
-            {paths.map((d, i) => (
-              <path
-                key={i}
-                d={d}
-                fill="none"
-                stroke="rgba(139,92,246,0.18)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            ))}
-            {dots.map((pt, i) => (
-              <circle
-                key={i}
-                cx={pt.cx}
-                cy={pt.cy}
-                r="3"
-                fill="#8b5cf6"
-                opacity="0.35"
-              />
-            ))}
-          </svg>
-        )}
-
+      <div className="max-w-4xl mx-auto">
         {/* Theo hero */}
-        <div ref={theoRef} className="relative z-10">
-          {theo && <TheoCard agent={theo} />}
+        {theo && <TheoCard agent={theo} />}
+
+        {/* CSS connector — centered vertical drop */}
+        <div className="flex flex-col items-center py-0" aria-hidden>
+          <div className="w-px h-6 bg-accent-purple/25" />
+          <div className="w-full max-w-3xl h-px bg-accent-purple/15 relative">
+            <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 rounded-full bg-accent-purple/40" />
+          </div>
+          <div className="w-full max-w-3xl flex justify-between px-[12.5%]">
+            {subagents.map(() => (
+              <div key={Math.random()} className="w-px h-4 bg-accent-purple/20" />
+            ))}
+          </div>
         </div>
 
-        {/* Spacer — org chart gap */}
-        <div className="h-10" />
-
         {/* Subagents grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 relative z-10 justify-items-center">
-          {subagents.map((agent, i) => (
-            <div
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {subagents.map((agent) => (
+            <AgentCard
               key={agent.id}
-              ref={el => { cardRefs.current[i] = el; }}
-            >
-              <AgentCard
-                agent={agent}
-                expanded={expanded === agent.id}
-                onToggle={() => toggle(agent.id)}
-              />
-            </div>
+              agent={agent}
+              expanded={expanded === agent.id}
+              onToggle={() => toggle(agent.id)}
+            />
           ))}
         </div>
 
         {/* Footer stats */}
-        <div className="mt-8 grid grid-cols-3 gap-3 relative z-10 max-w-xl mx-auto w-full">
+        <div className="mt-8 grid grid-cols-3 gap-3 max-w-xl mx-auto w-full">
           {[
             { label: 'Total de Agentes', value: String(agents.length), color: '#8b5cf6' },
             { label: 'Ativos Agora',     value: String(working),        color: '#34d399' },
-            { label: 'Modelo Padrão',    value: 'kimi-k2.5',            color: '#22d3ee' },
+            { label: 'Modelo Padrão',    value: 'gemini-2.5-flash',     color: '#22d3ee' },
           ].map(stat => (
             <div key={stat.label} className="bg-bg-card rounded-xl border border-white/[0.04] p-4 relative overflow-hidden">
               <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
               <p className="text-[9px] font-mono text-text-muted uppercase tracking-widest mb-2">{stat.label}</p>
-              <p className="text-2xl font-bold font-mono tabular-nums" style={{ color: stat.color }}>{stat.value}</p>
+              <p className="text-xl font-bold font-mono tabular-nums truncate" style={{ color: stat.color }}>{stat.value}</p>
             </div>
           ))}
         </div>

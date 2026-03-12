@@ -157,3 +157,77 @@ body {
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
 }
+
+/* ── Period toggle pill ── */
+.period-pill {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.period-pill:hover {
+  border-color: rgba(139,92,246,0.25);
+  color: var(--color-text-secondary);
+}
+.period-pill.active {
+  background: rgba(139,92,246,0.12);
+  border-color: rgba(139,92,246,0.35);
+  color: var(--color-accent-purple);
+}
+
+/* ── Inset surface (for selects, inputs) ── */
+.surface-inset {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ── Data row ── */
+.data-row {
+  display: flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.025);
+  gap: 10px;
+  transition: background 0.1s;
+}
+.data-row:last-child { border-bottom: none; }
+.data-row:hover { background: rgba(255,255,255,0.012); }
+
+/* ── Top shimmer line on cards ── */
+.shimmer-top::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 16px; right: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  pointer-events: none;
+}
+
+/* ── Slide in animation ── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* ── Number ticker ── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count { animation: count-up 0.4s ease-out; }
+
+/* ── Gauge glow ── */
+@keyframes gauge-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(52,211,153,0.4)); }
+  50%       { filter: drop-shadow(0 0 10px rgba(52,211,153,0.8)); }
+}
+.gauge-healthy { animation: gauge-pulse 3s ease-in-out infinite; }

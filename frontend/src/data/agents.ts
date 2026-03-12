@@ -19,4 +19,5 @@ export const AGENTS: PanelAgent[] = [
   { id: 'rafael',          name: 'Rafael',  role: 'CLO — Jurídico & Compliance',    color: '#fb923c', avatar: '⚖️', status: 'idle' },
   { id: 'salomao-onchain', name: 'Salomão', role: 'Trader DeFi — Solana',           color: '#fbbf24', avatar: '💰', status: 'idle' },
   { id: 'joao',            name: 'João',    role: 'Analista de Vendas — Lubrificantes', color: '#4ade80', avatar: '📈', status: 'idle' },
+  { id: 'argus', name: 'Argus', role: 'SRE — Monitoramento & Infraestrutura', color: '#e879f9', avatar: '🔭', status: 'working' },
 ];

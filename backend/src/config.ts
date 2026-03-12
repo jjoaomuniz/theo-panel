@@ -15,18 +15,21 @@ export interface AgentConfig {
   role: string;
   emoji: string;
   model: string;
+  modelPriceIn: number;   // USD per 1M input tokens
+  modelPriceOut: number;  // USD per 1M output tokens
 }
 
 // ─── Agent list (order = display order) ─────────────────────
 export const AGENTS: AgentConfig[] = [
-  { id: 'main',            dirName: 'main',            name: 'Theo',    role: 'CEO — Estratégia & Decisões',      emoji: '👑', model: 'kimi-k2.5' },
-  { id: 'bruno',           dirName: 'bruno',           name: 'Bruno',   role: 'CTO — Infra & Código',              emoji: '🧠', model: 'kimi-k2.5' },
-  { id: 'leo',             dirName: 'leo',             name: 'Leo',     role: 'CFO — Finanças & Custos',           emoji: '📊', model: 'kimi-k2.5' },
-  { id: 'marco',           dirName: 'marco',           name: 'Marco',   role: 'COO — Operações & Processos',       emoji: '⚙️', model: 'kimi-k2.5' },
-  { id: 'carla',           dirName: 'carla',           name: 'Carla',   role: 'CHRO — Pessoas & Cultura',          emoji: '🌟', model: 'kimi-k2.5' },
-  { id: 'rafael',          dirName: 'rafael',          name: 'Rafael',  role: 'CLO — Jurídico & Compliance',       emoji: '⚖️', model: 'kimi-k2.5' },
-  { id: 'salomao-onchain', dirName: 'salomao-onchain', name: 'Salomão', role: 'Trader DeFi — Solana',              emoji: '💰', model: 'kimi-k2.5' },
-  { id: 'joao',            dirName: 'joao',            name: 'João',    role: 'Analista de Vendas — Lubrificantes',emoji: '📈', model: 'kimi-k2.5' },
+  { id: 'main',            dirName: 'main',            name: 'Theo',    role: 'Chief of Staff — Orchestrator',     emoji: '🧠', model: 'openrouter/google/gemini-2.5-pro',    modelPriceIn: 1.25,  modelPriceOut: 10.0  },
+  { id: 'bruno',           dirName: 'bruno',           name: 'Bruno',   role: 'CTO — Tecnologia & Dev',            emoji: '⚡', model: 'openrouter/anthropic/claude-sonnet-4-5', modelPriceIn: 3.0, modelPriceOut: 15.0  },
+  { id: 'leo',             dirName: 'leo',             name: 'Leo',     role: 'CFO — Finanças & Controle',         emoji: '📊', model: 'openrouter/qwen/qwen3-235b-a22b',     modelPriceIn: 0.13,  modelPriceOut: 0.6   },
+  { id: 'marco',           dirName: 'marco',           name: 'Marco',   role: 'COO — Operações',                   emoji: '⚙️', model: 'openrouter/google/gemini-2.5-pro',    modelPriceIn: 1.25,  modelPriceOut: 10.0  },
+  { id: 'carla',           dirName: 'carla',           name: 'Carla',   role: 'CHRO — Pessoas & Cultura',          emoji: '👥', model: 'openrouter/qwen/qwen3-235b-a22b',     modelPriceIn: 0.13,  modelPriceOut: 0.6   },
+  { id: 'rafael',          dirName: 'rafael',          name: 'Rafael',  role: 'CLO — Jurídico & Compliance',       emoji: '⚖️', model: 'openrouter/deepseek/deepseek-r1',      modelPriceIn: 0.55,  modelPriceOut: 2.19  },
+  { id: 'salomao-onchain', dirName: 'salomao-onchain', name: 'Salomão', role: 'Trader DeFi — Solana',              emoji: '💰', model: 'openrouter/qwen/qwen3-235b-a22b',     modelPriceIn: 0.13,  modelPriceOut: 0.6   },
+  { id: 'joao',            dirName: 'joao',            name: 'João',    role: 'Analista de Vendas — Lubrificantes', emoji: '📈', model: 'openrouter/qwen/qwen3-235b-a22b',    modelPriceIn: 0.13,  modelPriceOut: 0.6   },
+  { id: 'argus',           dirName: 'argus',           name: 'Argus',   role: 'SRE — Monitoramento & Infraestrutura', emoji: '🔭', model: 'openrouter/google/gemini-2.5-flash', modelPriceIn: 0.15, modelPriceOut: 0.6   },
 ];
 
 // ─── Known agent metadata (role/emoji for display) ──────────

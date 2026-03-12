@@ -16,6 +16,7 @@ const AGENT_COLORS: Record<string, string> = {
   rafael:           '#fb923c',
   'salomao-onchain':'#fbbf24',
   joao:             '#4ade80',
+  argus:            '#e879f9',
 };
 
 const AGENT_AVATARS: Record<string, string> = {
@@ -27,6 +28,7 @@ const AGENT_AVATARS: Record<string, string> = {
   rafael:           '⚖️',
   'salomao-onchain':'💰',
   joao:             '📈',
+  argus:            '🔭',
 };
 
 const AGENT_FULL_ROLES: Record<string, string> = {
@@ -38,9 +40,10 @@ const AGENT_FULL_ROLES: Record<string, string> = {
   rafael:           'CLO — Jurídico & Compliance',
   'salomao-onchain':'Trader DeFi — Solana',
   joao:             'Analista de Vendas — Lubrificantes',
+  argus:            'SRE — Monitoramento & Infraestrutura',
 };
 
-const SORT_ORDER = ['theo', 'bruno', 'leo', 'marco', 'carla', 'rafael', 'salomao-onchain', 'joao'];
+const SORT_ORDER = ['theo', 'bruno', 'leo', 'marco', 'carla', 'rafael', 'salomao-onchain', 'joao', 'argus'];
 
 function toPanel(agent: Agent): PanelAgent {
   // Backend uses 'main' as the ID for the main Theo agent

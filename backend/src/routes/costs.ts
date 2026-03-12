@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDailyCostsByAgent, getCredits } from '../services/openrouter.js';
+import { getDailyCostsByAgent, getCredits, getModelBreakdown, getHistoryByPeriod } from '../services/openrouter.js';
 import { parseIntParam, errorResponse } from '../lib/validate.js';
 
 export const costsRouter = Router();
@@ -8,31 +8,35 @@ costsRouter.get('/costs', async (req, res) => {
   try {
     const days = parseIntParam(req.query.days, 30, 1, 90);
 
-    const [daily, credits] = await Promise.all([
+    const [daily, credits, byModel, history] = await Promise.all([
       getDailyCostsByAgent(days),
       getCredits().catch(() => null),
+      getModelBreakdown(days).catch(() => []),
+      getHistoryByPeriod().catch(() => ({ daily: [], weekly: [], monthly: [] })),
     ]);
 
     const total = daily.reduce((sum, d) => sum + d.total, 0);
     const average = daily.length > 0 ? total / daily.length : 0;
-    const daysInMonth = 30;
     const daysSoFar = daily.length || 1;
-    const projection = (total / daysSoFar) * daysInMonth;
+    const projection = (total / daysSoFar) * 30;
 
     res.json({
       daily,
       summary: {
-        total: Math.round(total * 100) / 100,
-        average: Math.round(average * 100) / 100,
-        projection: Math.round(projection * 100) / 100,
+        total: Math.round(total * 10000) / 10000,
+        average: Math.round(average * 10000) / 10000,
+        projection: Math.round(projection * 10000) / 10000,
       },
       credits: credits
         ? {
-            remaining: credits.total_credits - credits.total_usage,
+            remaining: Math.round((credits.total_credits - credits.total_usage) * 100) / 100,
             total: credits.total_credits,
-            used: credits.total_usage,
+            used: Math.round(credits.total_usage * 100) / 100,
+            isFreeTier: credits.is_free_tier,
           }
         : null,
+      byModel,
+      history,
     });
   } catch (error) {
     console.error('[Costs] Error:', error);

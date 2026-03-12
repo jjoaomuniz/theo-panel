@@ -4,6 +4,8 @@ import { api } from '@/lib/api';
 import { clearSession, getUsername } from '@/lib/auth';
 
 const navItems = [
+  { to: '/dashboard', label: 'Dashboard',   icon: '📊', group: 'core' },
+  { to: '/costs',     label: 'Custos',      icon: '💰', group: 'core' },
   { to: '/',          label: 'Neural Map',  icon: '🧠', group: 'core' },
   { to: '/coverage',  label: 'Cobertura',   icon: '🎯', group: 'core' },
   { to: '/cronjobs',  label: 'Cron Jobs',   icon: '⏰', group: 'core' },

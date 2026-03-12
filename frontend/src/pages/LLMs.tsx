@@ -3,10 +3,11 @@ import { api, type LLMModel } from '@/lib/api';
 import { EmptyState } from '@/components/shared/LoadingSkeleton';
 
 const fallbackLLMs: LLMModel[] = [
-  { id: 'moonshotai/kimi-k2.5', name: 'kimi-k2.5', provider: 'OpenRouter', requestsToday: 342, avgLatency: '1.2s', tokensPerSec: 85, costPer1k: '$0.015', status: 'online' },
-  { id: 'moonshotai/kimi-k2', name: 'kimi-k2', provider: 'OpenRouter', requestsToday: 128, avgLatency: '0.9s', tokensPerSec: 120, costPer1k: '$0.010', status: 'online' },
-  { id: 'anthropic/claude-3.5-haiku', name: 'claude-haiku', provider: 'OpenRouter', requestsToday: 56, avgLatency: '0.6s', tokensPerSec: 150, costPer1k: '$0.025', status: 'online' },
-  { id: 'anthropic/claude-sonnet-4', name: 'claude-sonnet', provider: 'OpenRouter', requestsToday: 12, avgLatency: '1.8s', tokensPerSec: 65, costPer1k: '$0.300', status: 'online' },
+  { id: 'google/gemini-2.5-pro',      name: 'Gemini 2.5 Pro',    provider: 'Google',    requestsToday: 0, avgLatency: '—', tokensPerSec: 0, costPer1k: '$0.010', status: 'online' },
+  { id: 'anthropic/claude-sonnet-4-5', name: 'Claude Sonnet 4.5', provider: 'Anthropic', requestsToday: 0, avgLatency: '—', tokensPerSec: 0, costPer1k: '$0.015', status: 'online' },
+  { id: 'qwen/qwen3-235b-a22b',        name: 'Qwen3 235B',        provider: 'Alibaba',   requestsToday: 0, avgLatency: '—', tokensPerSec: 0, costPer1k: '$0.001', status: 'online' },
+  { id: 'deepseek/deepseek-r1',        name: 'DeepSeek R1',       provider: 'DeepSeek',  requestsToday: 0, avgLatency: '—', tokensPerSec: 0, costPer1k: '$0.002', status: 'online' },
+  { id: 'google/gemini-2.5-flash',     name: 'Gemini 2.5 Flash',  provider: 'Google',    requestsToday: 0, avgLatency: '—', tokensPerSec: 0, costPer1k: '$0.001', status: 'online' },
 ];
 
 export default function LLMs() {

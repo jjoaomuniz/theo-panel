@@ -178,10 +178,12 @@ async function buildModelMetrics() {
 
   // Models we care about
   const targetModels = [
+    'google/gemini-2.5-pro',
+    'anthropic/claude-sonnet-4-5',
+    'qwen/qwen3-235b-a22b',
+    'deepseek/deepseek-r1',
+    'google/gemini-2.5-flash',
     'moonshotai/kimi-k2.5',
-    'moonshotai/kimi-k2',
-    'anthropic/claude-3.5-haiku',
-    'anthropic/claude-sonnet-4',
   ];
 
   return targetModels.map((modelId) => {
@@ -212,4 +214,102 @@ async function buildModelMetrics() {
       status: 'online' as const,
     };
   });
+}
+
+export interface ModelCostEntry {
+  model: string;
+  name: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+  pct: number;
+}
+
+/** Cost breakdown by model for last N days from OpenRouter activity */
+export async function getModelBreakdown(days: number = 30): Promise<ModelCostEntry[]> {
+  const cacheKey = `openrouter:model-breakdown:${days}`;
+  const cached = cache.get<ModelCostEntry[]>(cacheKey);
+  if (cached) return cached;
+
+  const activity = await getActivity(Math.max(days, 30));
+
+  // Filter to last N days
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+  const byModel = new Map<string, { cost: number; tokens: number; requests: number }>();
+  for (const entry of activity) {
+    if (entry.date < cutoffStr) continue;
+    const existing = byModel.get(entry.model) || { cost: 0, tokens: 0, requests: 0 };
+    existing.cost += entry.usage || 0;
+    existing.tokens += entry.tokens || 0;
+    existing.requests += entry.num_requests || 0;
+    byModel.set(entry.model, existing);
+  }
+
+  const totalCost = Array.from(byModel.values()).reduce((s, v) => s + v.cost, 0);
+
+  const result: ModelCostEntry[] = Array.from(byModel.entries())
+    .map(([model, data]) => ({
+      model,
+      name: model.split('/').pop() || model,
+      cost: Math.round(data.cost * 100000) / 100000,
+      tokens: data.tokens,
+      requests: data.requests,
+      pct: totalCost > 0 ? Math.round((data.cost / totalCost) * 100) : 0,
+    }))
+    .sort((a, b) => b.cost - a.cost);
+
+  cache.set(cacheKey, result, config.cacheTTL.api);
+  return result;
+}
+
+/** Daily/weekly/monthly cost history from OpenRouter activity */
+export async function getHistoryByPeriod() {
+  const cacheKey = 'openrouter:history-periods';
+  const cached = cache.get<{ daily: { date: string; cost: number }[]; weekly: { date: string; cost: number }[]; monthly: { date: string; cost: number }[] }>(cacheKey);
+  if (cached) return cached;
+
+  const activity = await getActivity(90);
+
+  // Daily — last 30 days, one entry per day
+  const byDate = new Map<string, number>();
+  for (const entry of activity) {
+    byDate.set(entry.date, (byDate.get(entry.date) || 0) + (entry.usage || 0));
+  }
+  const daily = Array.from(byDate.entries())
+    .map(([date, cost]) => ({ date, cost: Math.round(cost * 100000) / 100000 }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-30);
+
+  // Weekly — group by week starting Sunday
+  const byWeek = new Map<string, number>();
+  for (const entry of activity) {
+    const d = new Date(entry.date + 'T12:00:00Z');
+    const dayOfWeek = d.getUTCDay();
+    const weekStart = new Date(d);
+    weekStart.setUTCDate(d.getUTCDate() - dayOfWeek);
+    const weekKey = weekStart.toISOString().split('T')[0];
+    byWeek.set(weekKey, (byWeek.get(weekKey) || 0) + (entry.usage || 0));
+  }
+  const weekly = Array.from(byWeek.entries())
+    .map(([date, cost]) => ({ date, cost: Math.round(cost * 100000) / 100000 }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-8);
+
+  // Monthly — group by YYYY-MM
+  const byMonth = new Map<string, number>();
+  for (const entry of activity) {
+    const monthKey = entry.date.slice(0, 7);
+    byMonth.set(monthKey, (byMonth.get(monthKey) || 0) + (entry.usage || 0));
+  }
+  const monthly = Array.from(byMonth.entries())
+    .map(([date, cost]) => ({ date, cost: Math.round(cost * 100000) / 100000 }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-6);
+
+  const result = { daily, weekly, monthly };
+  cache.set(cacheKey, result, config.cacheTTL.api);
+  return result;
 }

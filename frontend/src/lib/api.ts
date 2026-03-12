@@ -35,10 +35,25 @@ export interface DailyCost {
   total: number;
 }
 
+export interface ModelCostEntry {
+  model: string;
+  name: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+  pct: number;
+}
+
 export interface CostData {
   daily: DailyCost[];
   summary: { total: number; average: number; projection: number };
-  credits: { remaining: number; total: number; used: number } | null;
+  credits: { remaining: number; total: number; used: number; isFreeTier?: boolean } | null;
+  byModel?: ModelCostEntry[];
+  history?: {
+    daily: { date: string; cost: number }[];
+    weekly: { date: string; cost: number }[];
+    monthly: { date: string; cost: number }[];
+  };
 }
 
 export interface LLMModel {
@@ -65,6 +80,12 @@ export const api = {
     apiFetch<{ ok: boolean }>(`/cronjobs/${id}`, { method: 'DELETE' }),
   runCronjob: (id: string) =>
     apiFetch<CronJob>(`/cronjobs/${id}/run`, { method: 'POST' }),
+  agentModels: () => apiFetch<Array<{ id: string; name: string; priceIn: number; priceOut: number }>>('/agents/models'),
+  updateAgentModel: (agentId: string, model: string) =>
+    apiFetch<{ ok: boolean } | object>(`/agents/${agentId}/model`, {
+      method: 'PATCH',
+      body: JSON.stringify({ model }),
+    }),
   llms: () => apiFetch<LLMModel[]>('/llms'),
   health: () => apiFetch<{ status: string; uptime: number; openrouter: boolean; openclaw: boolean }>('/health'),
   login: (email: string, password: string) =>
