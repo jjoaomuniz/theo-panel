@@ -61,4 +61,13 @@ export const api = {
   toggleCronjob: (id: string) => apiFetch<CronJob>(`/cronjobs/${id}/toggle`, { method: 'PUT' }),
   llms: () => apiFetch<LLMModel[]>('/llms'),
   health: () => apiFetch<{ status: string; uptime: number; openrouter: boolean; openclaw: boolean }>('/health'),
+  login: (username: string, password: string) =>
+    apiFetch<{ token: string; username: string }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    }),
+  logout: () => apiFetch<void>('/auth/logout', { method: 'POST' }),
+  github: () => apiFetch<any>('/github'),
+  vercel: () => apiFetch<any>('/vercel'),
+  supabase: () => apiFetch<any>('/supabase'),
 };
