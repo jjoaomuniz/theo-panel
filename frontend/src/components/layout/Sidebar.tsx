@@ -5,8 +5,6 @@ import { clearSession, getUsername } from '@/lib/auth';
 
 const navItems = [
   { to: '/',          label: 'Neural Map',  icon: '🧠', group: 'core' },
-  { to: '/dashboard', label: 'Dashboard',   icon: '📊', group: 'core' },
-  { to: '/agents',    label: 'Agentes',     icon: '🤖', group: 'core' },
   { to: '/coverage',  label: 'Cobertura',   icon: '🎯', group: 'core' },
   { to: '/cronjobs',  label: 'Cron Jobs',   icon: '⏰', group: 'core' },
   { to: '/tasks',     label: 'Tasks',       icon: '✅', group: 'new'  },

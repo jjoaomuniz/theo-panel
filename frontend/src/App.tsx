@@ -1,8 +1,6 @@
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router';
 import Layout from '@/components/layout/Layout';
 import NeuralMap from '@/pages/NeuralMap';
-import Dashboard from '@/pages/Dashboard';
-import Agents from '@/pages/Agents';
 import Coverage from '@/pages/Coverage';
 import CronJobs from '@/pages/CronJobs';
 import Tasks from '@/pages/Tasks';
@@ -36,8 +34,6 @@ const router = createBrowserRouter([
         element: <Layout />,
         children: [
           { index: true, element: <NeuralMap /> },
-          { path: 'dashboard', element: <Dashboard /> },
-          { path: 'agents', element: <Agents /> },
           { path: 'coverage', element: <Coverage /> },
           { path: 'cronjobs', element: <CronJobs /> },
           { path: 'tasks', element: <Tasks /> },
