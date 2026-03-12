@@ -2,105 +2,120 @@ import { useState, useEffect } from 'react';
 import type { PanelAgent } from '@/data/agents';
 import { useAgents } from '@/hooks/useAgents';
 
-interface DeskProps {
+interface WorkstationProps {
   agent: PanelAgent;
   blink: boolean;
-  size?: 'sm' | 'md';
+  isLead?: boolean;
 }
 
-function Desk({ agent, blink, size = 'md' }: DeskProps) {
+// ── Terminal-window workstation card ──────────────────────────────────────────
+function Workstation({ agent, blink, isLead = false }: WorkstationProps) {
   const isWorking = agent.status === 'working';
-  const monitorW = size === 'md' ? 88 : 72;
-  const monitorH = size === 'md' ? 60 : 48;
+  const cardW = isLead ? 224 : 156;
 
   return (
-    <div className="flex flex-col items-center gap-1.5 select-none">
-      {/* Monitor */}
-      <div className="relative flex flex-col items-center">
-        {/* Screen */}
+    <div className="flex flex-col items-center select-none" style={{ width: cardW }}>
+      {/* Terminal card */}
+      <div
+        className="rounded-xl border overflow-hidden w-full transition-all duration-300"
+        style={{
+          borderColor: isWorking ? agent.color + '28' : 'rgba(255,255,255,0.04)',
+          background: '#09090f',
+          boxShadow: isWorking ? `0 0 28px ${agent.color}08` : 'none',
+        }}
+      >
+        {/* Titlebar */}
         <div
-          className="rounded-lg border-2 flex items-center justify-center relative overflow-hidden"
+          className="flex items-center gap-1.5 px-2.5 py-1.5"
           style={{
-            width: monitorW,
-            height: monitorH,
-            borderColor: agent.color + (isWorking ? '70' : '30'),
-            background: '#040407',
+            background: agent.color + '07',
+            borderBottom: `1px solid ${agent.color}12`,
           }}
         >
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: isWorking ? '#f87171' : '#1a1a2c' }} />
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: isWorking ? '#fbbf24' : '#1a1a2c' }} />
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: isWorking ? agent.color : '#1a1a2c' }} />
+          <span className="ml-1.5 text-[8px] font-mono truncate flex-1" style={{ color: agent.color + '70' }}>
+            {agent.name.split(' ')[0].toLowerCase()}@theo
+          </span>
+        </div>
+
+        {/* Terminal body */}
+        <div
+          className="relative overflow-hidden px-2.5 py-2"
+          style={{ height: isLead ? 72 : 52, background: '#030307' }}
+        >
           {isWorking ? (
-            <div className="absolute inset-0 flex flex-col justify-center px-2 gap-1">
-              <div className="h-[3px] rounded-full" style={{ background: agent.color + (blink ? 'DD' : '44'), width: '80%' }} />
-              <div className="h-[3px] rounded-full" style={{ background: agent.color + '55', width: '55%' }} />
-              <div className="h-[3px] rounded-full" style={{ background: agent.color + (blink ? '88' : '33'), width: '70%' }} />
+            <div className="flex flex-col gap-1">
               <div className="flex items-center gap-1">
-                <div className="h-[3px] rounded-full flex-1" style={{ background: agent.color + '44' }} />
+                <span className="text-[8px] font-mono shrink-0" style={{ color: agent.color + '55' }}>›</span>
                 <div
-                  className="w-1 rounded-sm"
-                  style={{ height: 8, background: blink ? agent.color : 'transparent', transition: 'background 0.08s' }}
+                  className="h-[2px] rounded flex-1"
+                  style={{ background: agent.color + (blink ? '50' : '18') }}
+                />
+                <div
+                  className="w-[3px] rounded-sm ml-0.5 shrink-0"
+                  style={{
+                    height: 10,
+                    background: blink ? agent.color : 'transparent',
+                    transition: 'background 0.1s',
+                  }}
                 />
               </div>
+              <div className="h-[2px] rounded" style={{ width: '72%',  background: agent.color + '16' }} />
+              <div className="h-[2px] rounded" style={{ width: '48%',  background: agent.color + '10' }} />
+              {isLead && (
+                <>
+                  <div className="h-[2px] rounded" style={{ width: '88%', background: agent.color + '18' }} />
+                  <div className="h-[2px] rounded" style={{ width: '58%', background: agent.color + '0C' }} />
+                </>
+              )}
             </div>
           ) : (
-            <div className="font-mono text-[10px]" style={{ color: '#1a1a2e' }}>---</div>
+            <div className="h-full flex items-end">
+              <span className="text-[8px] font-mono" style={{ color: 'rgba(255,255,255,0.04)' }}>_ standby</span>
+            </div>
           )}
 
-          {/* Screen inner glow */}
+          {/* Screen glow */}
           {isWorking && (
             <div
-              className="absolute inset-0 rounded-md pointer-events-none"
-              style={{ boxShadow: `inset 0 0 14px ${agent.color}25`, opacity: blink ? 1 : 0.5, transition: 'opacity 0.4s' }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                boxShadow: `inset 0 0 16px ${agent.color}0C`,
+                opacity: blink ? 1 : 0.4,
+                transition: 'opacity 0.5s',
+              }}
             />
           )}
-
-          {/* Status LED */}
-          <div
-            className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
-            style={{
-              background: isWorking ? (blink ? '#34d399' : '#1d5c3e') : '#16162a',
-              transition: 'background 0.4s',
-              boxShadow: isWorking && blink ? '0 0 4px #34d399' : 'none',
-            }}
-          />
         </div>
-
-        {/* Monitor neck */}
-        <div style={{ width: 6, height: 10, background: '#111120' }} />
-        {/* Monitor base */}
-        <div style={{ width: 28, height: 4, background: '#111120', borderRadius: 2 }} />
       </div>
 
-      {/* Desk surface */}
-      <div
-        className="flex items-center justify-center rounded-xl relative"
-        style={{ width: monitorW + 14, height: 20, background: '#10101e', border: `1px solid ${agent.color}18` }}
-      >
-        <div className="flex gap-0.5">
-          {[5, 7, 6, 5].map((w, i) => (
-            <div key={i} style={{ width: w * 2, height: 5, background: '#1a1a2e', borderRadius: 1 }} />
-          ))}
-        </div>
-        <div style={{ width: 7, height: 9, background: '#1a1a2e', borderRadius: 4, marginLeft: 5 }} />
-      </div>
-
-      {/* Agent info */}
-      <div className="flex flex-col items-center gap-0.5 mt-1">
-        <span className="text-lg leading-none">{agent.avatar}</span>
-        <span className="text-xs font-mono font-semibold" style={{ color: agent.color }}>
+      {/* Agent info below terminal */}
+      <div className="flex flex-col items-center gap-0.5 mt-2.5">
+        <span className={isLead ? 'text-xl' : 'text-base leading-none'}>{agent.avatar}</span>
+        <span
+          className="text-[10px] font-mono font-semibold mt-0.5"
+          style={{ color: agent.color }}
+        >
           {agent.name.split(' ')[0]}
         </span>
-        <span className="text-[9px] font-mono text-text-muted opacity-60 text-center leading-tight" style={{ maxWidth: monitorW }}>
+        <p
+          className="text-[8px] font-mono text-text-muted/50 text-center leading-tight"
+          style={{ maxWidth: cardW - 12 }}
+        >
           {agent.role.split(' — ')[0]}
-        </span>
+        </p>
         <div className="flex items-center gap-1 mt-0.5">
           <div
-            className="w-1.5 h-1.5 rounded-full"
+            className="w-1 h-1 rounded-full"
             style={{
               background: isWorking ? '#34d399' : '#1a1a2e',
-              boxShadow: isWorking && blink ? '0 0 5px #34d399' : 'none',
+              boxShadow: isWorking && blink ? '0 0 4px #34d399' : 'none',
               transition: 'all 0.4s',
             }}
           />
-          <span className="text-[9px] font-mono" style={{ color: isWorking ? '#34d399' : '#2a2a4e' }}>
+          <span className="text-[8px] font-mono" style={{ color: isWorking ? '#34d399' : '#252540' }}>
             {isWorking ? 'working' : 'idle'}
           </span>
         </div>
@@ -118,111 +133,107 @@ export default function Office() {
     return () => clearInterval(interval);
   }, []);
 
-  const working = agents.filter(a => a.status === 'working').length;
-  const theo = agents[0];
+  const working   = agents.filter(a => a.status === 'working').length;
+  const theo      = agents[0];
   const subagents = agents.slice(1);
-
-  // Divide subagentes em 2 fileiras: 4 na primeira, resto na segunda
-  const row1 = subagents.slice(0, 4);
-  const row2 = subagents.slice(4);
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-4 sm:p-5">
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-4 shrink-0">
-        <h1 className="text-xl font-semibold tracking-wide">Office</h1>
-        <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
+        <h1 className="text-[11px] font-mono font-bold tracking-[0.2em] text-gradient">OFFICE</h1>
+        <div className="h-px flex-1 bg-gradient-to-r from-white/[0.05] to-transparent" />
         <div className="flex items-center gap-4 text-[10px] font-mono text-text-muted">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-success" />
+            <div className="w-1.5 h-1.5 rounded-full bg-success" />
             <span>working</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ background: '#1a1a2e' }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-border" />
             <span>idle</span>
           </div>
           <span style={{ color: '#c9a84c' }}>{working}/{agents.length} ativos</span>
-          {isLive && <span className="text-success">● live</span>}
+          {isLive && <span className="text-success/60">● live</span>}
         </div>
       </div>
 
-      {/* Office canvas */}
-      <div className="flex-1 flex items-center justify-center overflow-auto min-h-0">
-        <div className="w-full max-w-5xl" style={{ minHeight: 420 }}>
-          {/* Room */}
+      {/* Floor */}
+      <div className="flex-1 overflow-auto min-h-0">
+        <div
+          className="relative w-full rounded-2xl border border-white/[0.04] overflow-hidden flex flex-col items-center py-12 gap-10"
+          style={{
+            background: 'linear-gradient(160deg, #080810 0%, #050509 60%, #030306 100%)',
+            minHeight: 440,
+          }}
+        >
+          {/* Subtle grid */}
           <div
-            className="relative w-full rounded-3xl border border-white/[0.04] overflow-hidden flex flex-col items-center justify-center py-10 gap-8"
-            style={{ background: 'linear-gradient(180deg, #08080f 0%, #06060b 70%, #040408 100%)', minHeight: 420 }}
-          >
-            {/* Floor grid */}
+            className="absolute inset-0 opacity-[0.016]"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(0deg, transparent, transparent 47px, #fff 47px, #fff 48px),' +
+                'repeating-linear-gradient(90deg, transparent, transparent 47px, #fff 47px, #fff 48px)',
+            }}
+          />
+
+          {/* Ceiling light */}
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-px"
+            style={{
+              background: 'rgba(201,168,76,0.10)',
+              boxShadow: '0 0 80px 28px rgba(201,168,76,0.025)',
+            }}
+          />
+
+          {/* Theo — centered, labeled */}
+          <div className="relative z-10">
             <div
-              className="absolute inset-0 opacity-[0.025]"
+              className="absolute -top-7 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full whitespace-nowrap text-[8px] font-mono tracking-[0.2em] uppercase"
               style={{
-                backgroundImage:
-                  'repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,1) 39px, rgba(255,255,255,1) 40px),' +
-                  'repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,1) 39px, rgba(255,255,255,1) 40px)',
+                background: 'rgba(201,168,76,0.06)',
+                border: '1px solid rgba(201,168,76,0.16)',
+                color: '#c9a84c',
               }}
-            />
-
-            {/* Ceiling light */}
-            <div
-              className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 rounded-b-full"
-              style={{ background: 'rgba(201,168,76,0.15)', boxShadow: '0 0 60px 20px rgba(201,168,76,0.04)' }}
-            />
-
-            {/* Row 1: Theo */}
-            <div className="relative z-10">
-              <div
-                className="absolute -top-6 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-mono tracking-widest whitespace-nowrap"
-                style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', color: '#c9a84c' }}
-              >
-                CHIEF OF STAFF
-              </div>
-              {theo && <Desk agent={theo} blink={blink} size="md" />}
-            </div>
-
-            {/* Divider */}
-            <div className="w-2/3 h-px shrink-0" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.04), transparent)' }} />
-
-            {/* Row 2: first 4 subagents */}
-            {row1.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-8 sm:gap-10 relative z-10 px-4">
-                {row1.map(agent => (
-                  <Desk key={agent.id} agent={agent} blink={blink} size="md" />
-                ))}
-              </div>
-            )}
-
-            {/* Row 3: remaining subagents */}
-            {row2.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-8 sm:gap-10 relative z-10 px-4">
-                {row2.map(agent => (
-                  <Desk key={agent.id} agent={agent} blink={blink} size="md" />
-                ))}
-              </div>
-            )}
-
-            {/* Status bar */}
-            <div
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-2 rounded-full border border-white/[0.04] backdrop-blur-md"
-              style={{ background: 'rgba(6,6,11,0.7)', maxWidth: 'calc(100% - 32px)', flexWrap: 'wrap', justifyContent: 'center' }}
             >
-              {agents.map(agent => (
-                <div key={agent.id} className="flex items-center gap-1.5">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      background: agent.status === 'working' ? '#34d399' : '#16162a',
-                      boxShadow: agent.status === 'working' && blink ? '0 0 4px #34d399' : 'none',
-                      transition: 'all 0.4s',
-                    }}
-                  />
-                  <span className="text-[10px] font-mono" style={{ color: agent.color + 'CC' }}>
-                    {agent.name.split(' ')[0]}
-                  </span>
-                </div>
-              ))}
+              CHIEF OF STAFF
             </div>
+            {theo && <Workstation agent={theo} blink={blink} isLead />}
+          </div>
+
+          {/* Divider */}
+          <div
+            className="w-2/3 h-px shrink-0"
+            style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent)' }}
+          />
+
+          {/* Subagents — wrapping row, centered */}
+          <div className="flex flex-wrap justify-center gap-8 sm:gap-10 px-8 relative z-10">
+            {subagents.map(agent => (
+              <Workstation key={agent.id} agent={agent} blink={blink} />
+            ))}
+          </div>
+
+          {/* Bottom status strip */}
+          <div
+            className="absolute bottom-0 left-0 right-0 flex items-center justify-center flex-wrap gap-4 px-5 py-2 border-t border-white/[0.03]"
+            style={{ background: 'rgba(3,3,7,0.75)', backdropFilter: 'blur(8px)' }}
+          >
+            {agents.map(agent => (
+              <div key={agent.id} className="flex items-center gap-1.5">
+                <div
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: agent.status === 'working' ? '#34d399' : '#14142a',
+                    boxShadow: agent.status === 'working' && blink ? '0 0 4px #34d399' : 'none',
+                    transition: 'all 0.4s',
+                  }}
+                />
+                <span className="text-[9px] font-mono" style={{ color: agent.color + 'CC' }}>
+                  {agent.name.split(' ')[0]}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
