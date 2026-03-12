@@ -10,6 +10,10 @@ import { activitiesRouter } from './routes/activities.js';
 import { costsRouter } from './routes/costs.js';
 import { cronjobsRouter } from './routes/cronjobs.js';
 import { llmsRouter } from './routes/llms.js';
+import { authRouter } from './routes/auth.js';
+import { githubRouter } from './routes/github.js';
+import { vercelRouter } from './routes/vercel.js';
+import { supabaseRouter } from './routes/supabase.js';
 
 const app = express();
 const server = createServer(app);
@@ -25,6 +29,7 @@ app.use((req, _res, next) => {
 });
 
 // ─── Routes ─────────────────────────────────────────────────
+app.use('/api', authRouter);
 app.use('/api', healthRouter);
 app.use('/api', neuralRouter);
 app.use('/api', agentsRouter);
@@ -32,6 +37,9 @@ app.use('/api', activitiesRouter);
 app.use('/api', costsRouter);
 app.use('/api', cronjobsRouter);
 app.use('/api', llmsRouter);
+app.use('/api', githubRouter);
+app.use('/api', vercelRouter);
+app.use('/api', supabaseRouter);
 
 // ─── WebSocket ──────────────────────────────────────────────
 setupWebSocket(server);
