@@ -6,35 +6,46 @@ import { AGENTS as STATIC_AGENTS } from '@/data/agents';
 import { useWebSocket } from './useWebSocket';
 
 // Maps backend agent IDs to display colors (frontend-only concern)
+// Note: backend uses 'main' for Theo — mapped to 'theo' below
 const AGENT_COLORS: Record<string, string> = {
-  theo: '#c9a84c',
-  bruno: '#00d4ff',
-  leo: '#00ff88',
-  marco: '#8b5cf6',
-  carla:  '#f472b6',
-  rafael: '#fb923c',
+  theo:             '#c9a84c',
+  bruno:            '#00d4ff',
+  leo:              '#00ff88',
+  marco:            '#8b5cf6',
+  carla:            '#f472b6',
+  rafael:           '#fb923c',
+  'salomao-onchain':'#fbbf24',
+  joao:             '#4ade80',
 };
 
 const AGENT_AVATARS: Record<string, string> = {
-  theo: '🧠',
-  bruno: '⚡',
-  leo: '📊',
-  marco: '⚙️',
-  carla:  '👥',
-  rafael: '⚖️',
+  theo:             '🧠',
+  bruno:            '⚡',
+  leo:              '📊',
+  marco:            '⚙️',
+  carla:            '👥',
+  rafael:           '⚖️',
+  'salomao-onchain':'💰',
+  joao:             '📈',
 };
 
 const AGENT_FULL_ROLES: Record<string, string> = {
-  theo: 'Chief of Staff / Orchestrator',
-  bruno: 'CTO — Tecnologia & Dev',
-  leo: 'CFO — Finanças & Controle',
-  marco: 'COO — Operações',
-  carla:  'CHRO — Pessoas & Cultura',
-  rafael: 'CLO — Jurídico & Compliance',
+  theo:             'Chief of Staff / Orchestrator',
+  bruno:            'CTO — Tecnologia & Dev',
+  leo:              'CFO — Finanças & Controle',
+  marco:            'COO — Operações',
+  carla:            'CHRO — Pessoas & Cultura',
+  rafael:           'CLO — Jurídico & Compliance',
+  'salomao-onchain':'Trader DeFi — Solana',
+  joao:             'Analista de Vendas — Lubrificantes',
 };
 
+const SORT_ORDER = ['theo', 'bruno', 'leo', 'marco', 'carla', 'rafael', 'salomao-onchain', 'joao'];
+
 function toPanel(agent: Agent): PanelAgent {
-  const id = agent.id.toLowerCase();
+  // Backend uses 'main' as the ID for the main Theo agent
+  const rawId = agent.id.toLowerCase();
+  const id = rawId === 'main' ? 'theo' : rawId;
   return {
     id,
     name: agent.name,
@@ -59,8 +70,9 @@ export function useAgents(): { agents: PanelAgent[]; isLive: boolean } {
       const mapped = data.map(toPanel);
       // Preserve ordering: theo first, then subagents
       mapped.sort((a, b) => {
-        const order = ['theo', 'bruno', 'leo', 'marco', 'carla', 'rafael'];
-        return order.indexOf(a.id) - order.indexOf(b.id);
+        const ai = SORT_ORDER.indexOf(a.id);
+        const bi = SORT_ORDER.indexOf(b.id);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       });
       setAgents(mapped);
       setIsLive(true);
