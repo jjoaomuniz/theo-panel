@@ -61,10 +61,10 @@ export const api = {
   toggleCronjob: (id: string) => apiFetch<CronJob>(`/cronjobs/${id}/toggle`, { method: 'PUT' }),
   llms: () => apiFetch<LLMModel[]>('/llms'),
   health: () => apiFetch<{ status: string; uptime: number; openrouter: boolean; openclaw: boolean }>('/health'),
-  login: (username: string, password: string) =>
-    apiFetch<{ token: string; username: string }>('/auth/login', {
+  login: (email: string, password: string) =>
+    apiFetch<{ token: string; refreshToken: string; email: string }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     }),
   logout: () => apiFetch<void>('/auth/logout', { method: 'POST' }),
   github: () => apiFetch<any>('/github'),

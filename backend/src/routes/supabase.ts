@@ -7,13 +7,13 @@ export const supabaseRouter = Router();
 const sbFetch = (path: string) =>
   fetch(`https://api.supabase.com${path}`, {
     headers: {
-      Authorization: `Bearer ${config.supabaseToken}`,
+      Authorization: `Bearer ${config.supabaseServiceKey}`,
     },
     signal: AbortSignal.timeout(10_000),
   });
 
 supabaseRouter.get('/integrations/supabase', authMiddleware, async (_req, res) => {
-  if (!config.supabaseToken) {
+  if (!config.supabaseUrl) {
     res.json({ configured: false });
     return;
   }

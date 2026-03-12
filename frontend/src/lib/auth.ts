@@ -1,22 +1,27 @@
 const TOKEN_KEY = 'theo-panel-token';
-const USERNAME_KEY = 'theo-panel-user';
+const EMAIL_KEY = 'theo-panel-email';
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
 
-export function getUsername(): string | null {
-  return localStorage.getItem(USERNAME_KEY);
+export function getEmail(): string | null {
+  return localStorage.getItem(EMAIL_KEY);
 }
 
-export function saveSession(token: string, username: string): void {
+// Keep getUsername as alias for backwards compat
+export function getUsername(): string | null {
+  return localStorage.getItem(EMAIL_KEY);
+}
+
+export function saveSession(token: string, email: string): void {
   localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(USERNAME_KEY, username);
+  localStorage.setItem(EMAIL_KEY, email);
 }
 
 export function clearSession(): void {
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USERNAME_KEY);
+  localStorage.removeItem(EMAIL_KEY);
 }
 
 export function isLoggedIn(): boolean {

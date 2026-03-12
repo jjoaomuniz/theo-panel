@@ -1,44 +1,39 @@
 import { Router } from 'express';
-import { config } from '../config.js';
-import { createSession, destroySession, validateSession } from '../lib/auth.js';
+import { supabaseAdmin } from '../lib/supabase.js';
+import { authMiddleware } from '../lib/auth.js';
 
 export const authRouter = Router();
 
-authRouter.post('/auth/login', (req, res) => {
-  const { username, password } = req.body ?? {};
+authRouter.post('/auth/login', async (req, res) => {
+  const { email, password } = req.body ?? {};
 
-  if (!username || !password) {
-    res.status(400).json({ error: 'Usuário e senha obrigatórios' });
+  if (!email || !password) {
+    res.status(400).json({ error: 'Email e senha obrigatórios' });
     return;
   }
 
-  if (username !== config.panelUsername || password !== config.panelPassword) {
+  const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+
+  if (error || !data.session) {
     res.status(401).json({ error: 'Credenciais inválidas' });
     return;
   }
 
-  const token = createSession();
-  res.json({ token, username });
+  res.json({
+    token: data.session.access_token,
+    refreshToken: data.session.refresh_token,
+    email: data.user.email,
+  });
 });
 
-authRouter.post('/auth/logout', (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    destroySession(authHeader.slice(7));
-  }
+authRouter.post('/auth/logout', authMiddleware, async (req, res) => {
+  const token = req.headers.authorization!.slice(7);
+  await supabaseAdmin.auth.admin.signOut(token);
   res.json({ ok: true });
 });
 
-authRouter.get('/auth/verify', (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ valid: false });
-    return;
-  }
-  const valid = validateSession(authHeader.slice(7));
-  if (!valid) {
-    res.status(401).json({ valid: false });
-    return;
-  }
-  res.json({ valid: true, username: config.panelUsername });
+authRouter.get('/auth/verify', authMiddleware, async (req, res) => {
+  const token = req.headers.authorization!.slice(7);
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  res.json({ valid: true, email: user?.email });
 });

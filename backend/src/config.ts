@@ -55,10 +55,14 @@ export const config = {
   panelUsername: process.env.PANEL_USERNAME || 'admin',
   panelPassword: process.env.PANEL_PASSWORD || 'admin',
 
-  // Integrations (MCP tokens)
+  // Integrations
   githubToken: process.env.GITHUB_TOKEN || '',
   vercelToken: process.env.VERCEL_TOKEN || '',
-  supabaseToken: process.env.SUPABASE_TOKEN || '',
+
+  // Supabase
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+  supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY || '',
 
   // Cache TTLs (milliseconds)
   cacheTTL: {

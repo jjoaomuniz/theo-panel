@@ -6,7 +6,7 @@ import { saveSession } from '@/lib/auth';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,8 +17,8 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const { token, username: user } = await api.login(username, password);
-      saveSession(token, user);
+      const { token, email: userEmail } = await api.login(email, password);
+      saveSession(token, userEmail);
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login');
@@ -55,15 +55,15 @@ export default function Login() {
           <h2 className="text-sm font-semibold text-text-secondary mb-5 tracking-wide">Acesso ao Painel</h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Username */}
+            {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] text-text-muted uppercase tracking-widest font-mono">Usuário</label>
+              <label className="text-[10px] text-text-muted uppercase tracking-widest font-mono">Email</label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
-                autoComplete="username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="email"
                 autoFocus
                 required
                 className="bg-bg-primary border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted/40 outline-none focus:border-accent-purple/40 focus:ring-1 focus:ring-accent-purple/20 transition-all font-mono"
