@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 export interface WSEvent {
-  type: 'agent:update' | 'activity:new' | 'neural:update' | 'costs:update' | 'connected';
+  type: 'agent:update' | 'activity:new' | 'neural:update' | 'costs:update' | 'cronjob:update' | 'connected';
   data?: unknown;
   timestamp?: string;
 }

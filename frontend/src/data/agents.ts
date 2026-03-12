@@ -5,6 +5,9 @@ export interface PanelAgent {
   color: string;
   avatar: string;
   status: 'working' | 'idle';
+  activeTask?: string;
+  lastAction?: string;
+  lastActionTime?: string;
 }
 
 export const AGENTS: PanelAgent[] = [

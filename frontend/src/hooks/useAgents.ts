@@ -53,6 +53,9 @@ function toPanel(agent: Agent): PanelAgent {
     color: AGENT_COLORS[id] ?? '#8b5cf6',
     avatar: AGENT_AVATARS[id] ?? agent.emoji ?? '🤖',
     status: agent.status === 'executing' || agent.status === 'active' ? 'working' : 'idle',
+    activeTask: agent.activeTask,
+    lastAction: agent.lastAction,
+    lastActionTime: agent.lastActionTime,
   };
 }
 
