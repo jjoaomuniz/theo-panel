@@ -45,7 +45,7 @@ export function setupWebSocket(server: Server) {
   console.log('[WS] WebSocket server ready on /ws');
 }
 
-function broadcast(message: WSMessage) {
+export function broadcast(message: WSMessage) {
   if (!wss) return;
 
   const data = JSON.stringify(message);

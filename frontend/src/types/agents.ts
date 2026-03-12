@@ -31,8 +31,11 @@ export interface CronJob {
   id: string;
   name: string;
   schedule: string;
+  command?: string;
+  agentId?: string;
   lastRun: string;
-  lastRunStatus: 'ok' | 'error' | 'skipped';
+  lastRunStatus: 'ok' | 'error' | 'skipped' | 'running';
+  lastRunOutput?: string;
   nextRun: string;
   enabled: boolean;
 }

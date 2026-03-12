@@ -59,6 +59,12 @@ export const api = {
   costs: () => apiFetch<CostData>('/costs'),
   cronjobs: () => apiFetch<CronJob[]>('/cronjobs'),
   toggleCronjob: (id: string) => apiFetch<CronJob>(`/cronjobs/${id}/toggle`, { method: 'PUT' }),
+  createCronjob: (data: { name: string; schedule: string; command?: string; agentId?: string }) =>
+    apiFetch<CronJob>('/cronjobs', { method: 'POST', body: JSON.stringify(data) }),
+  deleteCronjob: (id: string) =>
+    apiFetch<{ ok: boolean }>(`/cronjobs/${id}`, { method: 'DELETE' }),
+  runCronjob: (id: string) =>
+    apiFetch<CronJob>(`/cronjobs/${id}/run`, { method: 'POST' }),
   llms: () => apiFetch<LLMModel[]>('/llms'),
   health: () => apiFetch<{ status: string; uptime: number; openrouter: boolean; openclaw: boolean }>('/health'),
   login: (email: string, password: string) =>

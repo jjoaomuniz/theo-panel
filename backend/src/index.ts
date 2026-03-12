@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { config } from './config.js';
-import { setupWebSocket } from './ws/server.js';
+import { setupWebSocket, broadcast } from './ws/server.js';
+import { startScheduler, setBroadcast } from './services/cronjob.js';
 import { healthRouter } from './routes/health.js';
 import { neuralRouter } from './routes/neural.js';
 import { agentsRouter } from './routes/agents.js';
@@ -43,6 +44,10 @@ app.use('/api', supabaseRouter);
 
 // ─── WebSocket ──────────────────────────────────────────────
 setupWebSocket(server);
+
+// Connect cron scheduler to WebSocket broadcast
+setBroadcast(broadcast as Parameters<typeof setBroadcast>[0]);
+startScheduler().catch(err => console.error('[Cron] Startup error:', err));
 
 // ─── Start ──────────────────────────────────────────────────
 const startTime = Date.now();

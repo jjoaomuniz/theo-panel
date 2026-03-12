@@ -56,9 +56,12 @@ export interface ActivityItem {
 export interface CronJob {
   id: string;
   name: string;
-  schedule: string;
+  schedule: string;    // "06h15", "*/30min", "*/5min"
+  command?: string;    // optional shell command to execute
+  agentId?: string;    // which agent this is associated with
   lastRun: string;
-  lastRunStatus: 'ok' | 'error' | 'skipped';
+  lastRunStatus: 'ok' | 'error' | 'skipped' | 'running';
+  lastRunOutput?: string;
   nextRun: string;
   enabled: boolean;
 }
@@ -114,7 +117,7 @@ export interface AgentConfig {
 }
 
 // ─── WebSocket Events ───────────────────────────────────────
-export type WSEventType = 'agent:update' | 'activity:new' | 'neural:update' | 'costs:update';
+export type WSEventType = 'agent:update' | 'activity:new' | 'neural:update' | 'costs:update' | 'cronjob:update';
 
 export interface WSMessage {
   type: WSEventType;
