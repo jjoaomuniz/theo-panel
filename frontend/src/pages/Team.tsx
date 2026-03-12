@@ -38,10 +38,11 @@ interface OrgLinesProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   theoRef:      React.RefObject<HTMLDivElement | null>;
   cardRefs:     React.MutableRefObject<(HTMLDivElement | null)[]>;
-  deps:         unknown; // re-measure when this changes
+  agentCount:   number;
+  expanded:     string | null;
 }
 
-function useOrgLines({ containerRef, theoRef, cardRefs, deps }: OrgLinesProps) {
+function useOrgLines({ containerRef, theoRef, cardRefs, agentCount, expanded }: OrgLinesProps) {
   const [paths, setPaths] = useState<string[]>([]);
   const [dots,  setDots]  = useState<{ cx: number; cy: number }[]>([]);
   const [dims,  setDims]  = useState({ w: 0, h: 0 });
@@ -95,7 +96,7 @@ function useOrgLines({ containerRef, theoRef, cardRefs, deps }: OrgLinesProps) {
     const ro = new ResizeObserver(measure);
     if (containerRef.current) ro.observe(containerRef.current);
     return () => ro.disconnect();
-  }, [measure, deps]);
+  }, [measure, agentCount, expanded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { paths, dots, dims };
 }
@@ -238,7 +239,8 @@ export default function Team() {
     containerRef,
     theoRef,
     cardRefs,
-    deps: [agents.length, expanded],
+    agentCount: agents.length,
+    expanded,
   });
 
   return (
