@@ -7,18 +7,31 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// ─── Agent config type ───────────────────────────────────────
+export interface AgentConfig {
+  id: string;
+  dirName: string;
+  name: string;
+  role: string;
+  emoji: string;
+  model: string;
+}
+
+// ─── Agent list (order = display order) ─────────────────────
+export const AGENTS: AgentConfig[] = [
+  { id: 'main',            dirName: 'main',            name: 'Theo',    role: 'CEO — Estratégia & Decisões',      emoji: '👑', model: 'kimi-k2.5' },
+  { id: 'bruno',           dirName: 'bruno',           name: 'Bruno',   role: 'CTO — Infra & Código',              emoji: '🧠', model: 'kimi-k2.5' },
+  { id: 'leo',             dirName: 'leo',             name: 'Leo',     role: 'CFO — Finanças & Custos',           emoji: '📊', model: 'kimi-k2.5' },
+  { id: 'marco',           dirName: 'marco',           name: 'Marco',   role: 'COO — Operações & Processos',       emoji: '⚙️', model: 'kimi-k2.5' },
+  { id: 'carla',           dirName: 'carla',           name: 'Carla',   role: 'CHRO — Pessoas & Cultura',          emoji: '🌟', model: 'kimi-k2.5' },
+  { id: 'rafael',          dirName: 'rafael',          name: 'Rafael',  role: 'CLO — Jurídico & Compliance',       emoji: '⚖️', model: 'kimi-k2.5' },
+  { id: 'salomao-onchain', dirName: 'salomao-onchain', name: 'Salomão', role: 'Trader DeFi — Solana',              emoji: '💰', model: 'kimi-k2.5' },
+  { id: 'joao',            dirName: 'joao',            name: 'João',    role: 'Analista de Vendas — Lubrificantes',emoji: '📈', model: 'kimi-k2.5' },
+];
+
 // ─── Known agent metadata (role/emoji for display) ──────────
-// Agents not listed here will use generic fallbacks.
-export const KNOWN_AGENT_METADATA: Record<string, { name: string; role: string; emoji: string }> = {
-  main:   { name: 'Theo',   role: 'CEO — Estratégia & Decisões',    emoji: '👑' },
-  bruno:  { name: 'Bruno',  role: 'CTO — Infra & Código',            emoji: '🧠' },
-  leo:    { name: 'Leo',    role: 'CFO — Finanças & Custos',         emoji: '📊' },
-  marco:  { name: 'Marco',  role: 'COO — Operações & Processos',     emoji: '⚙️' },
-  carla:  { name: 'Carla',  role: 'CHRO — Pessoas & Cultura',        emoji: '🌟' },
-  rafael: { name: 'Rafael', role: 'CLO — Jurídico & Compliance',     emoji: '⚖️' },
-  'salomao-onchain': { name: 'Salomão', role: 'Trader DeFi — Solana',                emoji: '💰' },
-  joao:              { name: 'João',    role: 'Analista de Vendas — Lubrificantes', emoji: '📈' },
-};
+export const KNOWN_AGENT_METADATA: Record<string, { name: string; role: string; emoji: string }> =
+  Object.fromEntries(AGENTS.map(a => [a.id, { name: a.name, role: a.role, emoji: a.emoji }]));
 
 // ─── Environment ─────────────────────────────────────────────
 const homeDir = os.homedir(); // cross-platform (Windows + Linux)
