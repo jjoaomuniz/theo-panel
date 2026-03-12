@@ -244,10 +244,10 @@ export default function Team() {
   });
 
   return (
-    <div className="h-full overflow-y-auto p-4 sm:p-6 mesh-gradient">
+    <div className="h-full overflow-y-auto p-4 sm:p-8 mesh-gradient">
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-8 max-w-3xl mx-auto">
         <h1 className="text-[11px] font-mono font-bold tracking-[0.2em] text-gradient">TEAM</h1>
         <div className="h-px flex-1 bg-gradient-to-r from-white/[0.05] to-transparent" />
         <div className="flex items-center gap-2.5 text-[10px] font-mono">
@@ -258,7 +258,7 @@ export default function Team() {
       </div>
 
       {/* Org chart container — SVG overlay + cards */}
-      <div ref={containerRef} className="max-w-4xl mx-auto relative">
+      <div ref={containerRef} className="max-w-3xl mx-auto relative">
 
         {/* SVG connection lines */}
         {dims.w > 0 && (
@@ -300,7 +300,7 @@ export default function Team() {
         <div className="h-10" />
 
         {/* Subagents grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 relative z-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 relative z-10 justify-items-center">
           {subagents.map((agent, i) => (
             <div
               key={agent.id}
@@ -316,7 +316,7 @@ export default function Team() {
         </div>
 
         {/* Footer stats */}
-        <div className="mt-8 grid grid-cols-3 gap-3 relative z-10">
+        <div className="mt-8 grid grid-cols-3 gap-3 relative z-10 max-w-xl mx-auto w-full">
           {[
             { label: 'Total de Agentes', value: String(agents.length), color: '#8b5cf6' },
             { label: 'Ativos Agora',     value: String(working),        color: '#34d399' },

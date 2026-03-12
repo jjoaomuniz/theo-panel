@@ -42,29 +42,8 @@ function getWeekDays(): Date[] {
 
 const emptyForm = { name: '', frequency: 'Diário', agentId: 'theo', days: [] as number[], time: '09:00' };
 
-/** Parse a cron expression "min hour * * dow" → { time, days } */
-function parseCronSchedule(schedule: string): { time: string; days: number[] } {
-  const parts = schedule.trim().split(/\s+/);
-  const [min = '0', hour = '0', , , dowPart = '*'] = parts;
-  const h = parseInt(hour, 10);
-  const m = parseInt(min, 10);
-  const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-
-  let days: number[] = [];
-  if (dowPart === '*') {
-    days = [0, 1, 2, 3, 4, 5, 6];
-  } else if (dowPart.includes('-')) {
-    const [s, e] = dowPart.split('-').map(Number);
-    for (let i = s; i <= e; i++) days.push(i % 7);
-  } else if (dowPart.includes(',')) {
-    days = dowPart.split(',').map(d => Number(d) % 7);
-  } else {
-    days = [Number(dowPart) % 7];
-  }
-  return { time, days };
-}
-
-function guessAgentId(name: string): string {
+function guessAgentId(name: string, agentId?: string): string {
+  if (agentId) return agentId;
   const n = name.toLowerCase();
   if (n.includes('leo') || n.includes('cust') || n.includes('financ')) return 'leo';
   if (n.includes('marco') || n.includes('backup') || n.includes('monitor')) return 'marco';
@@ -73,14 +52,30 @@ function guessAgentId(name: string): string {
   return 'theo';
 }
 
+// Parse backend schedule format: "06h15" (daily) or interval format (interval)
 function cronJobToCalendar(job: CronJob): CalendarCron {
-  const { time, days } = parseCronSchedule(job.schedule);
+  const allDays = [0, 1, 2, 3, 4, 5, 6];
+  let time = '00:00';
+  let frequency = 'Diário';
+
+  const timeMatch = job.schedule.match(/^(\d{2})h(\d{2})$/);
+  const intervalMatch = job.schedule.match(/^\*\/(\d+)min$/);
+
+  if (timeMatch) {
+    time = `${timeMatch[1]}:${timeMatch[2]}`;
+    frequency = 'Diário';
+  } else if (intervalMatch) {
+    const mins = intervalMatch[1];
+    time = `/${mins}min`;
+    frequency = `A cada ${mins}min`;
+  }
+
   return {
     id: `remote:${job.id}`,
     name: job.name,
-    frequency: days.length === 7 ? 'Diário' : days.length >= 5 ? 'Dias úteis' : 'Semanal',
-    agentId: guessAgentId(job.name),
-    days,
+    frequency,
+    agentId: guessAgentId(job.name, job.agentId),
+    days: allDays,
     enabled: job.enabled,
     time,
   };
