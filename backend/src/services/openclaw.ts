@@ -170,6 +170,11 @@ export async function updateAgentModel(agentId: string, newModel: string): Promi
 
   // Invalidate caches
   cache.invalidatePrefix('openclaw:');
+
+  // Restart the gateway so it picks up the new model (agents prefix = kind:"none" = no auto-reload)
+  await execAsync('docker restart openclaw-openclaw-gateway-1').catch((err) => {
+    console.warn('[OpenClaw] Gateway restart failed:', err.message);
+  });
 }
 
 /** Get all agents with their current status */

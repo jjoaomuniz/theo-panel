@@ -19,6 +19,9 @@ services:
       - ${OPENCLAW_HOST_DIR:-/root/.openclaw}:/data/openclaw
       # Cron jobs config (read-write)
       - ./cronjobs.json:/data/cronjobs.json
+      # Docker socket so backend can restart the gateway after model change
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
     ports:
       - "3001:3001"
     restart: unless-stopped
