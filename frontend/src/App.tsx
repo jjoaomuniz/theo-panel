@@ -14,6 +14,7 @@ import Login from '@/pages/Login';
 import GitHub from '@/pages/GitHub';
 import Vercel from '@/pages/Vercel';
 import Supabase from '@/pages/Supabase';
+import LLMs from '@/pages/LLMs';
 import { isLoggedIn } from '@/lib/auth';
 
 function RequireAuth() {
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
           { path: 'github', element: <GitHub /> },
           { path: 'vercel', element: <Vercel /> },
           { path: 'supabase', element: <Supabase /> },
+          { path: 'llms', element: <LLMs /> },
         ],
       },
     ],

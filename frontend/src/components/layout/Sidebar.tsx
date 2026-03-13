@@ -14,6 +14,7 @@ const navItems = [
   { to: '/calendar',  label: 'Calendar',    icon: '📅', group: 'new'  },
   { to: '/office',    label: 'Office',      icon: '🏢', group: 'new'  },
   { to: '/team',      label: 'Team',        icon: '👥', group: 'new'  },
+  { to: '/llms',      label: 'Modelos',     icon: '🤖', group: 'new'  },
   // MCP Integrations
   { to: '/github',    label: 'GitHub',      icon: '🐙', group: 'mcp'  },
   { to: '/vercel',    label: 'Vercel',      icon: '▲',  group: 'mcp'  },
