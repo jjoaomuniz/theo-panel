@@ -54,6 +54,7 @@ export interface CostData {
     weekly: { date: string; cost: number }[];
     monthly: { date: string; cost: number }[];
   };
+  todayByAgent?: Record<string, number>;
 }
 
 export interface LLMModel {

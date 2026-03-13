@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getCredits } from '../services/openrouter.js';
-import { getDailyCostsByAgent, getModelBreakdown, getHistoryByPeriod } from '../services/sessions.js';
+import { getDailyCostsByAgent, getModelBreakdown, getHistoryByPeriod, getTodayCostByAgent } from '../services/sessions.js';
 import { parseIntParam, errorResponse } from '../lib/validate.js';
 
 export const costsRouter = Router();
@@ -9,11 +9,12 @@ costsRouter.get('/costs', async (req, res) => {
   try {
     const days = parseIntParam(req.query.days, 30, 1, 90);
 
-    const [daily, credits, byModel, history] = await Promise.all([
+    const [daily, credits, byModel, history, todayByAgent] = await Promise.all([
       getDailyCostsByAgent(days).catch(() => []),
       getCredits().catch(() => null),
       getModelBreakdown(days).catch(() => []),
       getHistoryByPeriod().catch(() => ({ daily: [], weekly: [], monthly: [] })),
+      getTodayCostByAgent().catch(() => ({} as Record<string, number>)),
     ]);
 
     const total = daily.reduce((sum, d) => sum + d.total, 0);
@@ -38,6 +39,7 @@ costsRouter.get('/costs', async (req, res) => {
         : null,
       byModel,
       history,
+      todayByAgent,
     });
   } catch (error) {
     console.error('[Costs] Error:', error);

@@ -130,7 +130,11 @@ export default function Dashboard() {
   const availableModels = availableModelsRaw ?? [];
 
   const liveAgents: Agent[] = agents ?? [];
-  const totalDailyCost = liveAgents.reduce((s, a) => s + estimateCost(a), 0);
+  const todayByAgent = costData?.todayByAgent ?? {};
+  // Use real session cost; fall back to estimate only when no real data available
+  const getRealCost = (a: Agent) => todayByAgent[a.id] ?? todayByAgent[a.id === 'theo' ? 'main' : a.id] ?? 0;
+  const totalDailyCost = Object.values(todayByAgent).reduce((s, v) => s + v, 0) ||
+    liveAgents.reduce((s, a) => s + estimateCost(a), 0);
   const pct = Math.min((totalDailyCost / DAILY_META) * 100, 100);
   const barColor = pct >= 100 ? '#f87171' : pct >= 80 ? '#fbbf24' : '#34d399';
 
@@ -274,8 +278,8 @@ export default function Dashboard() {
               {liveAgents.map(agent => {
                 const agentKey = agent.id === 'main' ? 'theo' : agent.id;
                 const color = AGENT_COLORS[agentKey] ?? '#8b5cf6';
-                const cost = estimateCost(agent);
-                const totalForBar = liveAgents.reduce((s, a) => s + estimateCost(a), 0);
+                const cost = getRealCost(agent);
+                const totalForBar = totalDailyCost;
                 const costPct = totalForBar > 0 ? (cost / totalForBar) * 100 : 0;
                 const isUpdating = updatingModel === agent.id;
                 const msg = modelMsg?.id === agent.id ? modelMsg : null;
