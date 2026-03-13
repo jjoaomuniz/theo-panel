@@ -7,11 +7,22 @@ import { cache } from './cache.js';
 // ─── Types ────────────────────────────────────────────────────
 interface UsageEntry {
   agentId: string;
-  date: string;        // YYYY-MM-DD
+  date: string;        // YYYY-MM-DD local time
   model: string;
   costTotal: number;   // USD
   tokensInput: number;
   tokensOutput: number;
+}
+
+/** Convert UTC ISO timestamp to local date string (YYYY-MM-DD) */
+function utcToLocalDate(isoStr: string): string {
+  if (!isoStr) return 'unknown';
+  // new Date() parses ISO correctly; toLocaleDateString gives local date
+  const d = new Date(isoStr);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 // ─── Read all session files and extract usage ─────────────────
@@ -58,7 +69,7 @@ async function parseAllSessions(): Promise<UsageEntry[]> {
               if (!usage?.cost?.total) continue;
 
               const ts = d.timestamp || '';
-              const date = ts.slice(0, 10) || 'unknown';
+              const date = utcToLocalDate(ts);
 
               entries.push({
                 agentId: agentDir === 'main' ? 'main' : agentDir,
@@ -96,7 +107,7 @@ export async function getDailyCostsByAgent(days: number = 30) {
 
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
-  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const cutoffStr = utcToLocalDate(cutoff.toISOString());
 
   const byDate = new Map<string, Record<string, number>>();
 
@@ -133,7 +144,7 @@ export async function getModelBreakdown(days: number = 30) {
 
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
-  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const cutoffStr = utcToLocalDate(cutoff.toISOString());
 
   const byModel = new Map<string, { cost: number; tokens: number; requests: number }>();
 
@@ -193,7 +204,7 @@ export async function getHistoryByPeriod() {
     const diff = day === 0 ? -6 : 1 - day; // shift to Monday
     const weekStart = new Date(d);
     weekStart.setUTCDate(d.getUTCDate() + diff);
-    const weekKey = weekStart.toISOString().slice(0, 10);
+    const weekKey = utcToLocalDate(weekStart.toISOString());
     byWeek.set(weekKey, (byWeek.get(weekKey) || 0) + e.costTotal);
   }
   const weekly = Array.from(byWeek.entries())
@@ -219,7 +230,7 @@ export async function getHistoryByPeriod() {
 
 // ─── Public: today's cost per agent (for dashboard) ──────────
 export async function getTodayCostByAgent(): Promise<Record<string, number>> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = utcToLocalDate(new Date().toISOString());
   const entries = await parseAllSessions();
 
   const result: Record<string, number> = {};

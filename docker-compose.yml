@@ -12,9 +12,11 @@ services:
     build: ./backend
     container_name: theo-panel-backend
     env_file: .env
+    environment:
+      - TZ=America/Sao_Paulo
     volumes:
       # Mount OpenClaw data (read-only)
-      - ${OPENCLAW_HOST_DIR:-/root/.openclaw}:/data/openclaw:ro
+      - ${OPENCLAW_HOST_DIR:-/root/.openclaw}:/data/openclaw
       # Cron jobs config (read-write)
       - ./cronjobs.json:/data/cronjobs.json
     ports:

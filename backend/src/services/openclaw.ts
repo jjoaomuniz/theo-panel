@@ -16,11 +16,24 @@ interface SessionEntry {
     role?: string;
     content?: string | Array<{ type: string; text?: string; name?: string }>;
     model?: string;
+    usage?: {
+      input?: number;
+      output?: number;
+      totalTokens?: number;
+      input_tokens?: number;
+      output_tokens?: number;
+      cost?: { total?: number };
+    };
   };
   timestamp?: string;
   costUSD?: number;
   durationMs?: number;
   usage?: {
+    // OpenClaw JSONL format uses 'input'/'output'
+    input?: number;
+    output?: number;
+    totalTokens?: number;
+    // Legacy/alternative field names
     input_tokens?: number;
     output_tokens?: number;
     cost?: {
@@ -221,7 +234,10 @@ export async function getAgents(): Promise<Agent[]> {
         // Calculate token usage across sessions
         const now = Date.now();
         const dayMs = 24 * 60 * 60 * 1000;
-        const todayStart = now - dayMs;
+        // Use local midnight for "today" (not last 24h)
+        const localMidnight = new Date();
+        localMidnight.setHours(0, 0, 0, 0);
+        const todayStart = localMidnight.getTime();
         const weekStart = now - 7 * dayMs;
         const monthStart = now - 30 * dayMs;
 
@@ -233,8 +249,12 @@ export async function getAgents(): Promise<Agent[]> {
 
             const entries = await parseJsonlFile(sessionFile);
             for (const entry of entries) {
-              const tokens =
-                (entry.usage?.input_tokens || 0) + (entry.usage?.output_tokens || 0);
+              // Usage is nested inside entry.message.usage in OpenClaw JSONL format
+              const usage = entry.message?.usage ?? entry.usage;
+              const tokens = usage
+                ? (usage.totalTokens || (usage.input || 0) + (usage.output || 0) ||
+                   (usage.input_tokens || 0) + (usage.output_tokens || 0))
+                : 0;
               const ts = entry.timestamp ? new Date(entry.timestamp).getTime() : stat.mtimeMs;
 
               if (ts >= todayStart) tokensToday += tokens;
