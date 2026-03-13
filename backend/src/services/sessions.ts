@@ -44,7 +44,8 @@ async function parseAllSessions(): Promise<UsageEntry[]> {
     const sessionsPath = path.join(agentsDir, agentDir, 'sessions');
     if (!fs.existsSync(sessionsPath)) return;
 
-    const files = fs.readdirSync(sessionsPath).filter(f => f.endsWith('.jsonl'));
+    // Include both active sessions and deleted ones (deleted = session that was archived)
+    const files = fs.readdirSync(sessionsPath).filter(f => f.includes('.jsonl'));
 
     await Promise.all(files.map(async (file) => {
       const filePath = path.join(sessionsPath, file);

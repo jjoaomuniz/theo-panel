@@ -55,7 +55,8 @@ async function getSessionFiles(agentDir: string): Promise<string[]> {
   const sessionsDir = path.join(config.openclawDir, 'agents', agentDir, 'sessions');
   try {
     const files = await fs.readdir(sessionsDir);
-    const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
+    // Include both active and deleted session files
+    const jsonlFiles = files.filter((f) => f.includes('.jsonl'));
 
     // Sort by modification time, newest first
     const withStats = await Promise.all(
