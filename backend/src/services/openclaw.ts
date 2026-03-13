@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import http from 'http';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { config, AGENTS } from '../config.js';
@@ -171,9 +172,33 @@ export async function updateAgentModel(agentId: string, newModel: string): Promi
   // Invalidate caches
   cache.invalidatePrefix('openclaw:');
 
-  // Restart the gateway so it picks up the new model (agents prefix = kind:"none" = no auto-reload)
-  await execAsync('docker restart openclaw-openclaw-gateway-1').catch((err) => {
+  // Restart the gateway via Docker socket API so it picks up the new model
+  await restartGateway().catch((err) => {
     console.warn('[OpenClaw] Gateway restart failed:', err.message);
+  });
+}
+
+/** Restart the OpenClaw gateway container using Docker socket HTTP API */
+function restartGateway(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        socketPath: '/var/run/docker.sock',
+        path: '/containers/openclaw-openclaw-gateway-1/restart',
+        method: 'POST',
+      },
+      (res) => {
+        if (res.statusCode === 204 || res.statusCode === 200) {
+          console.log('[OpenClaw] Gateway restarted successfully');
+          resolve();
+        } else {
+          reject(new Error(`Docker API returned ${res.statusCode}`));
+        }
+        res.resume();
+      }
+    );
+    req.on('error', reject);
+    req.end();
   });
 }
 
