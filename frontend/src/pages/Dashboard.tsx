@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useAPI } from '@/hooks/useAPI';
 import { api } from '@/lib/api';
 import {
@@ -121,17 +121,12 @@ function PeriodToggle({ value, onChange }: { value: Period; onChange: (p: Period
 // ── Main ──────────────────────────────────────────────────────
 export default function Dashboard() {
   const [period, setPeriod] = useState<Period>('daily');
-  const [updatingModel, setUpdatingModel] = useState<string | null>(null);
-  const [modelMsg, setModelMsg] = useState<{ id: string; ok: boolean } | null>(null);
 
-  const { data: agents, refetch: refetchAgents } = useAPI(api.agents, [], { pollInterval: 15_000 });
+  const { data: agents } = useAPI(api.agents, [], { pollInterval: 15_000 });
   const { data: costData } = useAPI(api.costs, { daily: [], summary: { total: 0, average: 0, projection: 0 }, credits: null }, { pollInterval: 60_000 });
-  const { data: availableModelsRaw } = useAPI(api.agentModels, [], {});
-  const availableModels = availableModelsRaw ?? [];
 
   const liveAgents: Agent[] = agents ?? [];
   const todayByAgent = costData?.todayByAgent ?? {};
-  // Use real session cost; fall back to estimate only when no real data available
   const getRealCost = (a: Agent) => todayByAgent[a.id] ?? todayByAgent[a.id === 'theo' ? 'main' : a.id] ?? 0;
   const totalDailyCost = Object.values(todayByAgent).reduce((s, v) => s + v, 0) ||
     liveAgents.reduce((s, a) => s + estimateCost(a), 0);
@@ -142,21 +137,6 @@ export default function Dashboard() {
   const byModel = costData?.byModel ?? [];
   const history = costData?.history;
   const chartData = history?.[period] ?? costData?.daily?.map(d => ({ date: d.date, cost: d.total })) ?? [];
-
-  const handleModelChange = useCallback(async (agentId: string, newModel: string) => {
-    setUpdatingModel(agentId);
-    setModelMsg(null);
-    try {
-      await api.updateAgentModel(agentId, newModel);
-      setModelMsg({ id: agentId, ok: true });
-      await refetchAgents();
-    } catch {
-      setModelMsg({ id: agentId, ok: false });
-    } finally {
-      setUpdatingModel(null);
-      setTimeout(() => setModelMsg(null), 2500);
-    }
-  }, [refetchAgents]);
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6 mesh-gradient">
@@ -281,8 +261,6 @@ export default function Dashboard() {
                 const cost = getRealCost(agent);
                 const totalForBar = totalDailyCost;
                 const costPct = totalForBar > 0 ? (cost / totalForBar) * 100 : 0;
-                const isUpdating = updatingModel === agent.id;
-                const msg = modelMsg?.id === agent.id ? modelMsg : null;
 
                 return (
                   <div key={agent.id} className="data-row">
@@ -300,24 +278,8 @@ export default function Dashboard() {
                     <div className="w-16 shrink-0 text-right">
                       <p className="text-[11px] font-mono tabular-nums text-text-secondary">${cost.toFixed(4)}</p>
                     </div>
-                    <div className="shrink-0 flex items-center gap-1.5" style={{ minWidth: 180 }}>
-                      <select
-                        value={agent.model}
-                        disabled={isUpdating || availableModels.length === 0}
-                        onChange={e => handleModelChange(agent.id, e.target.value)}
-                        className="flex-1 text-[9px] font-mono surface-inset rounded-lg px-2 py-1.5 outline-none focus:border-accent-purple/30 cursor-pointer disabled:opacity-40 transition-colors"
-                        style={{ color: color + 'CC' }}
-                      >
-                        {availableModels.length === 0 ? (
-                          <option value={agent.model}>{shortModel(agent.model)}</option>
-                        ) : availableModels.map(m => (
-                          <option key={m.id} value={m.id} style={{ background: '#0d0d16', color: '#f1f5f9' }}>
-                            {m.name}
-                          </option>
-                        ))}
-                      </select>
-                      {isUpdating && <div className="w-3 h-3 border border-accent-purple/60 border-t-transparent rounded-full animate-spin shrink-0" />}
-                      {msg && <span className={`text-[8px] font-mono shrink-0 ${msg.ok ? 'text-success' : 'text-error'}`}>{msg.ok ? '✓' : '✗'}</span>}
+                    <div className="shrink-0" style={{ minWidth: 180 }}>
+                      <p className="text-[9px] font-mono truncate" style={{ color: color + 'AA' }}>{shortModel(agent.model)}</p>
                     </div>
                   </div>
                 );

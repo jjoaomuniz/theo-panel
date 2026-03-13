@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAPI } from '@/hooks/useAPI';
 import { api } from '@/lib/api';
 import type { Agent } from '@/types/agents';
@@ -128,9 +128,16 @@ function AgentCard({ agent, onModelSaved }: AgentCardProps) {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<'ok' | 'err' | null>(null);
 
+  // Sync selected when parent updates agent.model after refetch
+  useEffect(() => {
+    setSelected(agent.model);
+  }, [agent.model]);
+
   const rec = RECOMMENDATIONS[agent.id];
-  const currentModel = modelById(agent.model);
-  const currentCategory = currentModel?.category ?? 'mid';
+  const activeModel = modelById(agent.model);
+  const selectedModel = modelById(selected);
+  const activeCategory = activeModel?.category ?? 'mid';
+  const selectedCategory = selectedModel?.category ?? 'mid';
 
   const isDirty = selected !== agent.model;
 
@@ -141,7 +148,7 @@ function AgentCard({ agent, onModelSaved }: AgentCardProps) {
       await api.updateAgentModel(agent.id, selected);
       setFeedback('ok');
       onModelSaved(agent.id, selected);
-      setTimeout(() => setFeedback(null), 2000);
+      setTimeout(() => setFeedback(null), 2500);
     } catch {
       setFeedback('err');
       setTimeout(() => setFeedback(null), 3000);
@@ -151,54 +158,82 @@ function AgentCard({ agent, onModelSaved }: AgentCardProps) {
   }, [agent.id, selected, onModelSaved]);
 
   return (
-    <div className="bg-bg-card border border-border rounded-xl p-4 flex flex-col gap-3">
+    <div className={`bg-bg-card border rounded-xl p-4 flex flex-col gap-3 transition-all ${
+      isDirty ? 'border-accent-purple/40' : 'border-border'
+    }`}>
       {/* Agent Header */}
       <div className="flex items-center gap-3">
         <span className="text-2xl">{agent.emoji}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">{agent.name}</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${CATEGORY_COLORS[currentCategory]}`}>
-              {CATEGORY_LABELS[currentCategory]}
-            </span>
-          </div>
+          <span className="text-sm font-semibold">{agent.name}</span>
           <div className="text-[11px] text-text-muted truncate">{agent.role}</div>
         </div>
       </div>
 
-      {/* Current Model */}
-      <div className="text-[11px] font-mono text-text-muted">
-        Atual: <span className="text-text-secondary">{shortModelName(agent.model)}</span>
+      {/* Active Model — destaque principal */}
+      <div className="bg-black/20 border border-white/[0.04] rounded-lg p-2.5">
+        <div className="text-[9px] font-mono text-text-muted/50 uppercase tracking-widest mb-1">Modelo Ativo</div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-mono text-text-primary font-medium truncate">
+            {activeModel?.name ?? agent.model.split('/').pop()}
+          </span>
+          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full shrink-0 ${CATEGORY_COLORS[activeCategory]}`}>
+            {CATEGORY_LABELS[activeCategory]}
+          </span>
+        </div>
+        {activeModel && (
+          <div className="text-[9px] font-mono text-text-muted/50 mt-0.5">
+            {activeModel.priceIn === '$0' ? 'Gratuito' : `${activeModel.priceIn}/M in · ${activeModel.priceOut}/M out`}
+            {' · '}{activeModel.context}
+          </div>
+        )}
       </div>
 
       {/* Model Selector */}
-      <select
-        value={selected}
-        onChange={e => setSelected(e.target.value)}
-        className="w-full bg-bg-card border border-border rounded-lg px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent-purple/50 focus:ring-1 focus:ring-accent-purple/20 cursor-pointer"
-      >
-        {(['free', 'cheap', 'mid', 'premium'] as Category[]).map(cat => (
-          <optgroup key={cat} label={`── ${CATEGORY_LABELS[cat]} ──`}>
-            {MODELS.filter(m => m.category === cat).map(m => {
-              const isRecPrimary = rec?.primary === m.id;
-              const isRecSecondary = rec?.secondary === m.id;
-              const suffix = isRecPrimary ? ' ★ Recomendado' : isRecSecondary ? ' ◆ Econômico' : '';
-              return (
-                <option key={m.id} value={m.id}>
-                  {m.name}{suffix} — {m.priceIn}/M in
-                </option>
-              );
-            })}
-          </optgroup>
-        ))}
-      </select>
+      <div>
+        <div className="text-[9px] font-mono text-text-muted/50 uppercase tracking-widest mb-1.5">Trocar Modelo</div>
+        <select
+          value={selected}
+          onChange={e => setSelected(e.target.value)}
+          className="w-full bg-bg-card border border-border rounded-lg px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent-purple/50 focus:ring-1 focus:ring-accent-purple/20 cursor-pointer"
+        >
+          {(['free', 'cheap', 'mid', 'premium'] as Category[]).map(cat => (
+            <optgroup key={cat} label={`── ${CATEGORY_LABELS[cat]} ──`}>
+              {MODELS.filter(m => m.category === cat).map(m => {
+                const isRecPrimary = rec?.primary === m.id;
+                const isRecSecondary = rec?.secondary === m.id;
+                const isCurrent = m.id === agent.model;
+                const suffix = isCurrent ? ' ✓ Atual' : isRecPrimary ? ' ★ Recomendado' : isRecSecondary ? ' ◆ Econômico' : '';
+                return (
+                  <option key={m.id} value={m.id}>
+                    {m.name}{suffix} — {m.priceIn === '$0' ? 'Free' : `${m.priceIn}/M`}
+                  </option>
+                );
+              })}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
+      {/* Preview of selected model when dirty */}
+      {isDirty && selectedModel && (
+        <div className="flex items-center justify-between text-[10px] font-mono px-1">
+          <span className="text-text-muted/60">Novo:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-text-secondary">{selectedModel.name}</span>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${CATEGORY_COLORS[selectedCategory]}`}>
+              {CATEGORY_LABELS[selectedCategory]}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Recommendations hint */}
-      {rec && (
-        <div className="text-[10px] text-text-muted/60 font-mono leading-relaxed">
-          <span className="text-accent-purple">★</span> {shortModelName(rec.primary)}
+      {rec && !isDirty && (
+        <div className="text-[10px] text-text-muted/50 font-mono leading-relaxed">
+          <span className="text-accent-purple/70">★</span> {shortModelName(rec.primary)}
           {'  '}
-          <span className="text-accent-cyan">◆</span> {shortModelName(rec.secondary)}
+          <span className="text-accent-cyan/70">◆</span> {shortModelName(rec.secondary)}
         </div>
       )}
 
@@ -207,22 +242,22 @@ function AgentCard({ agent, onModelSaved }: AgentCardProps) {
         <button
           onClick={save}
           disabled={saving}
-          className={`w-full py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+          className={`w-full py-2 rounded-lg text-xs font-mono font-semibold transition-all ${
             saving
               ? 'bg-accent-purple/20 text-accent-purple/50 cursor-not-allowed'
-              : 'bg-accent-purple/15 text-accent-purple hover:bg-accent-purple/25 border border-accent-purple/20'
+              : 'bg-accent-purple/20 text-accent-purple hover:bg-accent-purple/30 border border-accent-purple/30'
           }`}
         >
-          {saving ? 'Salvando…' : 'Salvar'}
+          {saving ? '⏳ Salvando…' : '✓ Aplicar Modelo'}
         </button>
       )}
 
       {/* Feedback */}
       {feedback === 'ok' && (
-        <div className="text-[11px] font-mono text-success text-center">Modelo atualizado</div>
+        <div className="text-[11px] font-mono text-success text-center">Modelo atualizado com sucesso</div>
       )}
       {feedback === 'err' && (
-        <div className="text-[11px] font-mono text-error text-center">Erro ao salvar</div>
+        <div className="text-[11px] font-mono text-error text-center">Erro ao salvar — tente novamente</div>
       )}
     </div>
   );
